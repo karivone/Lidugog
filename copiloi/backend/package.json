@@ -1,0 +1,26 @@
+{
+  "name": "lidugog-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Lidugog blog (Node.js/Express)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "blog",
+    "api",
+    "nodejs",
+    "express"
+  ],
+  "author": "Kayewi",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
