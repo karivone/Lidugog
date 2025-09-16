@@ -1,6 +1,6 @@
 <template>
   <section class="subscribe-section">
-    <h1>Join the Conversations</h1>
+  <h1 class="subscribe-title">Join the Conversations</h1>
     <p class="subtitle">Get the content you need, just when you need it</p>
     <form class="subscribe-form" @submit.prevent="subscribe">
       <div class="form-row">
@@ -57,21 +57,24 @@ async function subscribe() {
 </script>
 <style scoped>
 .subscribe-section {
-  max-width: 1000px;
-  margin: 3rem auto;
+  width: 80vw;
+  max-width: none;
+  margin: 3rem 0;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 2.5rem 2rem 2rem 2rem;
+  padding: 2.5rem 4vw 2rem 4vw;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
-.subscribe-section h1 {
+.subscribe-title {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: #222;
-  text-align: center;
+  text-align: left;
+  margin-left: 0;
 }
 .subtitle {
   color: #666;
@@ -81,9 +84,16 @@ async function subscribe() {
 }
 .subscribe-form {
   width: 100%;
+  max-width: 920px;
+  min-width: 420px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  padding: 3rem 4vw;
+  background: #f9f9f9;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.06);
 }
 .form-row {
   display: flex;

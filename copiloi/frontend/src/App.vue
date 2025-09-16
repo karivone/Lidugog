@@ -14,7 +14,6 @@
           <router-link to="/about">About Me</router-link>
           <router-link to="/contact">Contact</router-link>
           <router-link to="/subscribe">Subscribe</router-link>
-          <router-link to="/create-blog" class="create-blog-link">Create Blog</router-link>
         </nav>
       </div>
     </header>
@@ -38,11 +37,31 @@ header {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0.5rem 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+@media (max-width: 700px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .logo {
+    margin-bottom: 0.5rem;
+  }
+  nav {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+  nav a {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.98rem;
+  }
 }
 
 .logo {
@@ -57,6 +76,7 @@ nav {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  margin-left: auto;
 }
 
 nav a {

@@ -1,7 +1,7 @@
 <template>
   <section class="all-blogs-section">
     <h1>All Blog Posts</h1>
-    <BlogList :posts="allPosts" />
+  <BlogList :posts="allPosts" :showReadMore="false" :showFullPost="true" />
   </section>
 </template>
 
@@ -35,9 +35,11 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 2rem auto 0 auto;
-  max-width: 1100px;
-  width: 100%;
+  margin: 2rem 0 0 0;
+  width: 80vw; /* size of the blog section */
+  max-width: none;
+  padding: 0 4vw;
+  box-sizing: border-box;
 }
 .all-blogs-section h1 {
   text-align: center;
