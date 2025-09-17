@@ -70,6 +70,26 @@
               </div>
               <canvas id="viewsChart" style="width:100%;height:220px;"></canvas>
             </div>
+            <div class="volt-card" style="width:100%;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;margin-bottom:2.5rem;">
+              <div style="font-size:1.13rem;color:#222;font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class="fa-solid fa-table" style="color:#42b983;font-size:1.1em;"></i>
+                Blog Metrics
+              </div>
+              <div style="overflow-x:auto;">
+                <table id="blogMetricsTable" style="width:100%;border-collapse:collapse;">
+                  <thead>
+                    <tr style="background:#f6f8fa;color:#222;font-weight:600;">
+                      <th style="padding:0.7em 0.5em;text-align:left;">Title</th>
+                      <th style="padding:0.7em 0.5em;text-align:right;">Likes</th>
+                      <th style="padding:0.7em 0.5em;text-align:right;">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="3" style="color:#aaa;text-align:center;">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div style="display:flex;flex-wrap:wrap;gap:2.5rem 2.5rem;width:100%;">
               <div class="volt-card" style="flex:1.2;min-width:320px;max-width:400px;height:340px;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;">
                 <div style="display:flex;align-items:center;gap:0.5rem;font-size:1.13rem;color:#222;font-weight:600;margin-bottom:0.5rem;">
@@ -92,10 +112,24 @@
     </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Blog Performance Chart for Dashboard
+    // Blog Performance Chart and Metrics for Dashboard
     fetch('/api/posts')
       .then(res => res.json())
       .then(posts => {
+        // Blog Metrics Table
+        const table = document.getElementById('blogMetricsTable').getElementsByTagName('tbody')[0];
+        if (posts.length) {
+          table.innerHTML = posts.map(p => `
+            <tr>
+              <td style=\"padding:0.6em 0.5em;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\">${p.title}</td>
+              <td style=\"padding:0.6em 0.5em;text-align:right;\">${p.likes || 0}</td>
+              <td style=\"padding:0.6em 0.5em;text-align:right;\">${p.views || 0}</td>
+            </tr>
+          `).join('');
+        } else {
+          table.innerHTML = '<tr><td colspan="3" style="color:#aaa;text-align:center;">No posts yet.</td></tr>';
+        }
+
         // Chart: Top 5 posts by views
         const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,5);
         const ctx = document.getElementById('viewsChart').getContext('2d');
