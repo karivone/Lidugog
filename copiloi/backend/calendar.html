@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar of Events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f7f7f7; color: #222; margin: 0; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: #222; color: #fff; display: flex; flex-direction: column; padding: 2rem 1.2rem 1.2rem 1.2rem; }
+    .sidebar h2 { color: #42b983; font-size: 1.5rem; margin-bottom: 2.5rem; text-align: center; letter-spacing: -1px; }
+    .nav { list-style: none; padding: 0; margin: 0; }
+    .nav li { margin-bottom: 1.5rem; }
+    .nav a { color: #fff; text-decoration: none; font-weight: 600; font-size: 1.08rem; display: flex; align-items: center; transition: color 0.2s; }
+    .nav a:hover, .nav .active { color: #42b983; }
+    .nav .icon { color: #42b983; font-size: 1.2rem; width: 1.7rem; text-align: center; margin-right: 0.5rem; }
+    .main { flex: 1; background: #f7f7f7; padding: 2.5rem 2rem 2rem 2rem; }
+    .main h1 { color: #42b983; font-size: 2.1rem; margin-bottom: 0.5rem; letter-spacing: -1px; }
+    .section { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(66,185,131,0.07); padding: 1.5rem 1.5rem 1.2rem 1.5rem; margin-bottom: 2rem; }
+    .section h2 { color: #222; font-size: 1.2rem; margin-bottom: 1rem; }
+    .footer { text-align: center; color: #aaa; font-size: 0.98rem; margin-top: 2.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1.2rem; }
+    th, td { padding: 0.7rem; border-bottom: 1px solid #eee; text-align: left; }
+    th { background: #f0f0f0; color: #222; }
+    tr:last-child td { border-bottom: none; }
+    .add-event-form { margin-bottom: 2rem; }
+    input, textarea { padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; margin-right: 0.7rem; }
+    button { background: #42b983; color: #fff; border: none; padding: 0.7rem 1.2rem; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2><i class="fa-solid fa-leaf"></i> Lidugog</h2>
+      <ul class="nav">
+        <li><a href="/" ><span class="icon"><i class="fa-solid fa-house"></i></span>Dashboard</a></li>
+        <li><a href="/admin"><span class="icon"><i class="fa-solid fa-gauge-high"></i></span>Admin</a></li>
+        <li><a href="/create-blog"><span class="icon"><i class="fa-solid fa-pen-to-square"></i></span>Create Blog</a></li>
+        <li><a href="/messages"><span class="icon"><i class="fa-solid fa-envelope"></i></span>Messages</a></li>
+        <li><a href="/calendar" class="active"><span class="icon"><i class="fa-solid fa-calendar-days"></i></span>Calendar</a></li>
+        <li><a href="/settings"><span class="icon"><i class="fa-solid fa-gear"></i></span>Settings</a></li>
+      </ul>
+    </aside>
+    <main class="main">
+      <h1>Calendar of Events</h1>
+      <div class="section">
+        <h2><i class="fa-solid fa-calendar-plus"></i> Add Event</h2>
+        <form class="add-event-form" method="POST" action="/calendar/add-event">
+          <input name="title" type="text" placeholder="Event Title" required />
+          <input name="date" type="date" required />
+          <input name="time" type="time" />
+          <input name="location" type="text" placeholder="Location" />
+          <textarea name="description" placeholder="Description" rows="2"></textarea>
+          <button type="submit">Add Event</button>
+        </form>
+        <h2><i class="fa-solid fa-calendar"></i> Upcoming Events</h2>
+        <table>
+          <thead>
+            <tr><th>Title</th><th>Date</th><th>Time</th><th>Location</th><th>Description</th></tr>
+          </thead>
+          <tbody id="events-list">
+            <!-- Events will be rendered here by backend -->
+          </tbody>
+        </table>
+      </div>
+      <div class="footer">&copy; 2025 Lidugog Blog. Powered by Node.js &amp; Express.</div>
+    </main>
+  </div>
+</body>
+</html>

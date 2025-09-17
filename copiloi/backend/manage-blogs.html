@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Blogs - Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
+    .sidebar {
+      min-height: 100vh;
+      background: #0c0c0c;
+      color: #222;
+      border-right: 1px solid #ececec;
+      padding-top: 2.5rem;
+      padding-bottom: 2rem;
+      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+    }
+    .sidebar .nav-link {
+      color: #fcf9f9;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 1.2rem;
+      transition: background 0.18s, color 0.18s;
+    }
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+      background: #42b983;
+      color: #fff;
+    }
+    .sidebar-logo {
+      font-size: 1.7rem;
+      color: #42b983;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .main-content { background: #f8f9fa; min-height: 100vh; }
+    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
+    .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
+    .blog-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: flex-start;
+    }
+    .blog-card {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1.5rem;
+      transition: box-shadow 0.2s;
+    }
+    .blog-card:hover {
+      box-shadow: 0 4px 16px rgba(66,168,222,0.13);
+    }
+    .blog-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+      background: #f0f0f0;
+    }
+    .blog-content {
+      padding: 1.2rem 1.2rem 0.7rem 1.2rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .blog-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #22223b;
+      margin-bottom: 0.3rem;
+    }
+    .blog-meta {
+      color: #888;
+      font-size: 0.98rem;
+      margin-bottom: 0.7rem;
+    }
+    .blog-summary {
+      color: #444;
+      font-size: 1rem;
+      margin-bottom: 0.7rem;
+      flex: 1;
+    }
+    .blog-actions {
+      display: flex;
+      gap: 0.7rem;
+      margin-bottom: 0.5rem;
+    }
+    .blog-actions button {
+      background: #4ea8de;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 1.1rem;
+      font-size: 0.98rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .blog-actions button.delete {
+      background: #e74c3c;
+    }
+    .edit-form {
+      margin-top: 0.7rem;
+      background: #f7f7f7;
+      padding: 0.7rem;
+      border-radius: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block sidebar py-4">
+        <div class="sidebar-logo mb-4">Lidugog</div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="/admin"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/create-blog"><i class="fa-solid fa-pen-to-square me-2"></i>Create Blog</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/manage-blogs"><i class="fa-solid fa-book me-2"></i>Manage Blogs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/calendar"><i class="fa-solid fa-calendar-days me-2"></i>Calendar</a></li>
+          <li class="nav-item"><a class="nav-link" href="/messages" target="_blank"><i class="fa-solid fa-address-book me-2"></i>Contacts</a></li>
+          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+        </ul>
+      </nav>
+      <main class="col-md-10 ms-sm-auto main-content px-4">
+        <div class="card p-4 my-4">
+          <div class="volt-section-title">All Blogs</div>
+          <div class="blog-list" id="blogList"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+  <script>
+    async function fetchBlogs() {
+      const res = await fetch('/api/posts');
+      const blogs = await res.json();
+      const list = document.getElementById('blogList');
+      list.innerHTML = blogs.map(blog => {
+        let imageUrl = blog.image ? `/uploads/${blog.image}` : 'https://via.placeholder.com/340x180?text=No+Image';
+        return `
+        <div class="blog-card" data-id="${blog.id}">
+          <img class="blog-image" src="${imageUrl}" alt="Blog Image" onerror="this.src='https://via.placeholder.com/340x180?text=No+Image'" />
+          <div class="blog-content">
+            <div class="blog-title">${blog.title}</div>
+            <div class="blog-meta">by ${blog.author} (${blog.date})</div>
+            <div class="blog-summary">${blog.summary}</div>
+            <div class="blog-actions">
+              <button onclick="editBlog(${blog.id})">Edit</button>
+              <button class="delete" onclick="deleteBlog(${blog.id})">Delete</button>
+            </div>
+            <form class="edit-form" id="editForm${blog.id}" style="display:none;" enctype="multipart/form-data">
+              <input name="title" type="text" value="${blog.title}" required />
+              <input name="author" type="text" value="${blog.author}" required />
+              <input name="date" type="date" value="${blog.date}" required />
+              <textarea name="summary" required rows="3">${blog.summary}</textarea>
+              <input name="image" type="file" accept="image/*" />
+              <button type="submit">Save</button>
+              <button type="button" onclick="cancelEdit(${blog.id})">Cancel</button>
+            </form>
+          </div>
+        </div>
+        `;
+      }).join('');
+      blogs.forEach(blog => {
+        const form = document.getElementById('editForm'+blog.id);
+        if (form) {
+          form.onsubmit = function(e) { submitEdit(e, blog.id); };
+        }
+      });
+    }
+    fetchBlogs();
+    window.editBlog = function(id) {
+      document.getElementById('editForm'+id).style.display = 'block';
+    }
+    window.cancelEdit = function(id) {
+      document.getElementById('editForm'+id).style.display = 'none';
+    }
+    async function submitEdit(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const res = await fetch('/api/posts/'+id, {
+        method: 'PUT',
+        body: formData
+      });
+      if (res.ok) {
+        fetchBlogs();
+        form.style.display = 'none';
+      }
+    }
+    window.deleteBlog = async function(id) {
+      if (!confirm('Delete this blog?')) return;
+      const res = await fetch('/api/posts/'+id, { method: 'DELETE' });
+      if (res.ok) fetchBlogs();
+    }
+  </script>
+</body>
+</html>

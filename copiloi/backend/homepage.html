@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lidugog Blog Backend</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #0c0c0c; }
+    .sidebar {
+      min-height: 100vh;
+      background: #0c0c0c0c;
+      color: #222;
+      border-right: 1px solid #ececec;
+      padding-top: 2.5rem;
+      padding-bottom: 2rem;
+      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+    }
+    .sidebar .nav-link {
+      color: #fcf9f9;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 1.2rem;
+      transition: background 0.18s, color 0.18s;
+    }
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+      background: #42b983;
+      color: #fff;
+    }
+    .sidebar-logo {
+      font-size: 1.7rem;
+      color: #42b983;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .main-content { background: #f8f9fa; min-height: 100vh; }
+    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
+    .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block sidebar py-4">
+        <div class="sidebar-logo mb-4">Lidugog</div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link active" href="/"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/create-blog"><i class="fa-solid fa-pen-to-square me-2"></i>Create Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="/subscriptions"><i class="fa-solid fa-users me-2"></i>Subscriptions</a></li>
+          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+        </ul>
+      </nav>
+    <main class="main">
+      <h1>Welcome to Lidugog Blog Backend</h1>
+      <div class="desc">Manage blog posts, comments, subscriptions, and events from this dashboard.</div>
+      <div class="section" id="blogstats">
+        <h2><i class="fa-solid fa-chart-bar"></i> Blog Performance</h2>
+        <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center;">
+          <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
+            <div id="totalBlogs" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
+            <div style="color:#888;">Total Blogs</div>
+          </div>
+          <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
+            <div id="totalLikes" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
+            <div style="color:#888;">Total Likes</div>
+          </div>
+          <div style="flex:2;min-width:260px;">
+            <canvas id="blogPerformanceChart" height="90"></canvas>
+          </div>
+        </div>
+        <div style="margin-top:2rem;">
+          <h3 style="color:#222;font-size:1.1rem;margin-bottom:0.7rem;">Recent Posts</h3>
+          <ul id="recentPosts" style="list-style:none;padding:0;"><li style="color:#aaa;">Loading...</li></ul>
+        </div>
+      </div>
+      <div class="section" id="calendar">
+        <h2><i class="fa-solid fa-calendar-days"></i> Calendar of Events</h2>
+        <div class="calendar-placeholder">(Event calendar coming soon)</div>
+      </div>
+      <div class="api">
+        <i class="fa-solid fa-code"></i> For API usage, see <a href="/api/posts">/api/posts</a>
+      </div>
+      <div class="footer">&copy; 2025 Lidugog Blog. Powered by Node.js &amp; Express.</div>
+    </main>
+  </div>
+</body>
+<script>
+// Fetch blog stats and render chart
+fetch('/api/posts')
+  .then(res => res.json())
+  .then(posts => {
+    // Total blogs and likes
+    document.getElementById('totalBlogs').textContent = posts.length;
+    const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
+    document.getElementById('totalLikes').textContent = totalLikes;
+
+    // Recent posts
+    const recent = posts.slice(0, 5);
+    const recentList = document.getElementById('recentPosts');
+    if (recent.length) {
+      recentList.innerHTML = recent.map(p => `<li style="margin-bottom:0.5rem;"><strong>${p.title}</strong> <span style="color:#42b983;">(${p.likes||0} likes, ${p.views||0} views)</span></li>`).join('');
+    } else {
+      recentList.innerHTML = '<li style="color:#aaa;">No posts yet.</li>';
+    }
+
+    // Chart: Top 5 posts by views
+    const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,5);
+    const ctx = document.getElementById('blogPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: topPosts.map(p => p.title.length > 18 ? p.title.slice(0,18)+'…' : p.title),
+        datasets: [{
+          label: 'Views',
+          data: topPosts.map(p => p.views || 0),
+          backgroundColor: '#42b983',
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#222', font: { weight: 600 } } },
+          y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+      }
+    });
+  });
+</script>
+</html>

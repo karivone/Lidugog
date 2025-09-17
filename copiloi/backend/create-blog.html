@@ -3,39 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Blogs (Backend)</title>
+  <title>Create Blog - Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <style>
-    body { font-family: sans-serif; background: #f7f7f7; }
-    .container { max-width: 600px; margin: 3rem auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 2.5rem 2rem 2rem 2rem; }
-    h1 { font-size: 2rem; margin-bottom: 1.5rem; color: #222; text-align: center; }
-    form { display: flex; flex-direction: column; gap: 1rem; }
-    input, textarea { padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-    button { background: #42b983; color: #fff; border: none; padding: 0.75rem; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+    body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
+    .sidebar {
+      min-height: 100vh;
+      background: #030303;
+      color: #222;
+      border-right: 1px solid #ececec;
+      padding-top: 2.5rem;
+      padding-bottom: 2rem;
+      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+    }
+    .sidebar .nav-link {
+      color: #faf8f8;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 1.2rem;
+      transition: background 0.18s, color 0.18s;
+    }
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+      background: #42b983;
+      color: #fff;
+    }
+    .sidebar-logo {
+      font-size: 1.7rem;
+      color: #42b983;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .main-content { background: #f8f9fa; min-height: 100vh; }
+    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
     .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
-    .blog-list { margin-top: 2rem; }
-    .blog-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
-    .blog-item:last-child { border-bottom: none; }
-    .blog-actions { margin-top: 0.5rem; }
-    .blog-actions button { margin-right: 0.5rem; background: #ffd700; color: #222; border: 1px solid #ffd700; }
-    .blog-actions button.delete { background: #e74c3c; color: #fff; border: 1px solid #e74c3c; }
-    .blog-actions button:hover { opacity: 0.85; }
-    .edit-form { background: #f9f9f9; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Manage Blogs</h1>
-    <form id="blogForm" enctype="multipart/form-data">
-      <input name="title" type="text" placeholder="Title*" required />
-      <input name="author" type="text" placeholder="Author*" required />
-      <input name="date" type="date" required />
-      <textarea name="summary" placeholder="Summary*" required rows="3"></textarea>
-      <input name="image" type="file" accept="image/*" />
-      <button type="submit">Create Blog</button>
-    </form>
-    <p id="responseMsg" class="success-msg"></p>
-    <div class="blog-list" id="blogList"></div>
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block sidebar py-4">
+        <div class="sidebar-logo mb-4">Lidugog</div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="/admin"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/create-blog"><i class="fa-solid fa-pen-to-square me-2"></i>Create Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="/manage-blogs"><i class="fa-solid fa-book me-2"></i>Manage Blogs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/calendar"><i class="fa-solid fa-calendar-days me-2"></i>Calendar</a></li>
+          <li class="nav-item"><a class="nav-link" href="/messages" target="_blank"><i class="fa-solid fa-address-book me-2"></i>Contacts</a></li>
+          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+        </ul>
+      </nav>
+      <main class="col-md-10 ms-sm-auto main-content px-4">
+        <div class="card p-4 my-4">
+          <div class="volt-section-title mb-3"><i class="fa-solid fa-pen-to-square me-2"></i>Create a New Blog</div>
+          <form id="blogForm" enctype="multipart/form-data" class="row g-3">
+            <div class="col-md-6">
+              <input name="title" type="text" class="form-control" placeholder="Title*" required />
+            </div>
+            <div class="col-md-6">
+              <input name="author" type="text" class="form-control" placeholder="Author*" required />
+            </div>
+            <div class="col-md-6">
+              <input name="date" type="date" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Blog Image (upload or paste URL)</label>
+              <input name="image" type="file" class="form-control mb-2" accept="image/*" />
+              <input name="imageUrl" type="url" class="form-control" placeholder="Or paste Google image URL here" />
+              <small class="form-text text-muted">If both are provided, uploaded file will be used.</small>
+            </div>
+            <div class="col-12">
+              <textarea name="summary" class="form-control" placeholder="Summary*" required rows="3"></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary w-100">Create Blog</button>
+            </div>
+          </form>
+          <p id="responseMsg" class="success-msg"></p>
+        </div>
+
+      </main>
+    </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
   <script>
     async function fetchBlogs() {
       const res = await fetch('/api/posts');

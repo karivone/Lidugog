@@ -194,7 +194,7 @@ onMounted(async () => {
   width: 70vw;
   max-width: none;
   margin: 3rem 0;
-  background: #fff;
+  background: #080808;
   border-radius: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 2.5rem 4vw 2rem 4vw;
@@ -211,13 +211,13 @@ onMounted(async () => {
   min-width: 220px;
   max-width: 260px;
   text-align: left;
-  color: #444;
+  color: #faf8f8;
   margin-top: 0.5rem;
 }
 .contact-info h2 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  color: #222;
+  color: #f7f3f3;
 }
 .contact-info p {
   margin: 0.2rem 0;
@@ -239,7 +239,7 @@ onMounted(async () => {
 .copyright {
   margin-top: 1.2rem;
   font-size: 0.95rem;
-  color: #888;
+  color: #fcf9f9;
 }
 .contact-form-wrap {
   flex: 1;
@@ -253,13 +253,13 @@ onMounted(async () => {
 .contact-form-wrap h1 {
   font-size: 2rem;
   margin-bottom: 0.5rem;
-  color: #222;
+  color: #fcf6f6;
   text-align: left;
   width: 100%;
 }
 .subtitle {
   font-size: 1.1rem;
-  color: #666;
+  color: #faf5f5;
   margin-bottom: 1.5rem;
   text-align: left;
   width: 100%;
@@ -288,7 +288,7 @@ onMounted(async () => {
 }
 .contact-form button {
   background: #42b983;
-  color: #fff;
+  color: #0e0e0e;
   border: none;
   border-radius: 6px;
   padding: 0.75rem;
