@@ -108,20 +108,41 @@
         <h2><i class="fa-solid fa-chart-bar"></i> Blog Performance</h2>
         <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center;">
           <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
-            <div id="totalBlogs" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
+            <div id="totalBlogs" style="font-size:2.2rem;color:#42b983;font-weight:bold;"><%= totalBlogs %></div>
             <div style="color:#888;">Total Blogs</div>
           </div>
           <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
-            <div id="totalLikes" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
+            <div id="totalLikes" style="font-size:2.2rem;color:#42b983;font-weight:bold;"><%= totalLikes %></div>
             <div style="color:#888;">Total Likes</div>
           </div>
           <div style="flex:2;min-width:260px;">
             <canvas id="blogPerformanceChart" height="90"></canvas>
           </div>
         </div>
+
+        <!-- Metrics Section: Customer Flow & Device Share -->
+        <div class="metrics" style="margin-top:2.5rem;display:flex;flex-wrap:wrap;gap:2.5rem;align-items:stretch;">
+          <div style="flex:2;min-width:260px;background:#fff;border-radius:1rem;padding:1.2rem;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
+            <h3 style="color:#222;font-size:1.1rem;margin-bottom:1rem;">Customer Flow (Monthly Visits)</h3>
+            <canvas id="customerFlowChart" height="120"></canvas>
+            <div id="flowChange" style="margin-top:0.7rem;font-size:1.05rem;"></div>
+          </div>
+          <div style="flex:1;min-width:220px;background:#fff;border-radius:1rem;padding:1.2rem;box-shadow:0 2px 8px rgba(66,185,131,0.07);text-align:center;">
+            <h3 style="color:#222;font-size:1.1rem;margin-bottom:1rem;">Traffic Share by Device</h3>
+            <canvas id="deviceShareChart" height="120"></canvas>
+          </div>
+        </div>
         <div style="margin-top:2rem;">
           <h3 style="color:#222;font-size:1.1rem;margin-bottom:0.7rem;">Recent Posts</h3>
-          <ul id="recentPosts" style="list-style:none;padding:0;"><li style="color:#aaa;">Loading...</li></ul>
+          <ul id="recentPosts" style="list-style:none;padding:0;">
+            <% if (recentPosts.length) { %>
+              <% recentPosts.forEach(function(p) { %>
+                <li style="margin-bottom:0.5rem;"><strong><%= p.title %></strong> <span style="color:#42b983;">(<%= p.likes || 0 %> likes, <%= p.views || 0 %> views)</span></li>
+              <% }); %>
+            <% } else { %>
+              <li style="color:#aaa;">No posts yet.</li>
+            <% } %>
+          </ul>
         </div>
       </div>
       <div class="section" id="calendar">
@@ -136,46 +157,95 @@
   </div>
 </body>
 <script>
-// Fetch blog stats and render chart
-fetch('/api/posts')
+// Chart: Top 5 posts by views
+const topPosts = JSON.parse('<%= JSON.stringify(topPosts) %>');
+const ctx = document.getElementById('blogPerformanceChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: topPosts.map(p => p.title.length > 18 ? p.title.slice(0,18)+'…' : p.title),
+    datasets: [{
+      label: 'Views',
+      data: topPosts.map(p => p.views || 0),
+      backgroundColor: '#42b983',
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#222', font: { weight: 600 } } },
+      y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  }
+});
+
+// Customer Flow (Monthly Visits)
+fetch('/api/visits/monthly')
   .then(res => res.json())
-  .then(posts => {
-    // Total blogs and likes
-    document.getElementById('totalBlogs').textContent = posts.length;
-    const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
-    document.getElementById('totalLikes').textContent = totalLikes;
-
-    // Recent posts
-    const recent = posts.slice(0, 5);
-    const recentList = document.getElementById('recentPosts');
-    if (recent.length) {
-      recentList.innerHTML = recent.map(p => `<li style="margin-bottom:0.5rem;"><strong>${p.title}</strong> <span style="color:#42b983;">(${p.likes||0} likes, ${p.views||0} views)</span></li>`).join('');
-    } else {
-      recentList.innerHTML = '<li style="color:#aaa;">No posts yet.</li>';
-    }
-
-    // Chart: Top 5 posts by views
-    const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,5);
-    const ctx = document.getElementById('blogPerformanceChart').getContext('2d');
+  .then(months => {
+    const labels = months.map(m => m.month);
+    const data = months.map(m => m.count);
+    const ctx = document.getElementById('customerFlowChart').getContext('2d');
     new Chart(ctx, {
-      type: 'bar',
+      type: 'line',
       data: {
-        labels: topPosts.map(p => p.title.length > 18 ? p.title.slice(0,18)+'…' : p.title),
+        labels,
         datasets: [{
-          label: 'Views',
-          data: topPosts.map(p => p.views || 0),
-          backgroundColor: '#42b983',
-          borderRadius: 8,
+          label: 'Visits',
+          data,
+          borderColor: '#42b983',
+          backgroundColor: 'rgba(66,185,131,0.12)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
         }]
       },
       options: {
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#222', font: { weight: 600 } } },
+          x: { grid: { display: false }, ticks: { color: '#222' } },
           y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
         },
         responsive: true,
         maintainAspectRatio: false,
+      }
+    });
+    // Show improvement/decline
+    if (data.length > 1) {
+      const prev = data[data.length-2];
+      const curr = data[data.length-1];
+      const diff = curr - prev;
+      const pct = prev ? ((diff/prev)*100).toFixed(1) : 'N/A';
+      let msg = '';
+      if (diff > 0) msg = `<span style="color:#42b983;font-weight:bold;">▲ ${diff} more visits (+${pct}%) than last month</span>`;
+      else if (diff < 0) msg = `<span style="color:#e74c3c;font-weight:bold;">▼ ${-diff} fewer visits (${pct}%) than last month</span>`;
+      else msg = `<span style="color:#888;">No change from last month</span>`;
+      document.getElementById('flowChange').innerHTML = msg;
+    }
+  });
+
+// Device Share (Traffic Share)
+fetch('/api/visits/devices')
+  .then(res => res.json())
+  .then(devices => {
+    const ctx = document.getElementById('deviceShareChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: devices.map(d => d.device),
+        datasets: [{
+          data: devices.map(d => d.count),
+          backgroundColor: ['#42b983','#f1c40f','#888'],
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom', labels: { color: '#222', font: { weight: 600 } } } },
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
       }
     });
   });

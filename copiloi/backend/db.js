@@ -63,7 +63,16 @@ db.run('ALTER TABLE subscriptions ADD COLUMN country TEXT', err => {});
     description TEXT,
     event_date TEXT NOT NULL,
     reminder_sent INTEGER DEFAULT 0,
+
     created_at TEXT NOT NULL
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL,
+    device TEXT NOT NULL,
+    user_agent TEXT,
+    date TEXT NOT NULL
   )`);
 });
 

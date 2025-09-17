@@ -262,10 +262,44 @@ app.post('/settings/add-user', async (req, res) => {
   });
 });
 
+// API: Get monthly visit stats (customer flow)
+app.get('/api/visits/monthly', (req, res) => {
+  db.all(`SELECT strftime('%Y-%m', date) as month, COUNT(*) as count FROM visits GROUP BY month ORDER BY month DESC LIMIT 13`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.reverse()); // chronological order
+  });
+});
+
+// API: Get device share (traffic share)
+app.get('/api/visits/devices', (req, res) => {
+  db.all(`SELECT device, COUNT(*) as count FROM visits GROUP BY device`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+// Helper to parse device type from user-agent
+function getDeviceType(ua) {
+  ua = ua || '';
+  if (/mobile/i.test(ua)) return 'Mobile';
+  if (/tablet|ipad/i.test(ua)) return 'Tablet';
+  if (/android/i.test(ua) && !/mobile/i.test(ua)) return 'Tablet';
+  return 'Desktop';
+}
+
+// Log visit middleware
+function logVisit(pathName) {
+  return (req, res, next) => {
+    const ua = req.headers['user-agent'] || '';
+    const device = getDeviceType(ua);
+    const date = new Date().toISOString();
+    db.run('INSERT INTO visits (path, device, user_agent, date) VALUES (?, ?, ?, ?)', [pathName, device, ua, date], () => {});
+    next();
+  };
+}
 
 
 // Serve admin dashboard at /admin
-app.get('/admin', (req, res) => {
+app.get('/admin', logVisit('/admin'), (req, res) => {
   res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
 });
 
@@ -509,12 +543,12 @@ const renderHome = (stats, recentPostsHtml) => `
     </html>
 `;
 
-app.get('/', (req, res) => {
+app.get('/', logVisit('/'), (req, res) => {
   db.all('SELECT * FROM posts ORDER BY date DESC LIMIT 5', [], (err, posts) => {
     if (err) return res.status(500).send('Error loading blog stats.');
     db.get('SELECT COUNT(*) as totalBlogs, SUM(likes) as totalLikes FROM posts', [], (err2, stats) => {
       if (err2) return res.status(500).send('Error loading blog stats.');
-      const recentPostsHtml = posts.map(post => `<li style='margin-bottom:0.5rem;'><strong>${post.title}</strong> <span style='color:#888;'>(${post.date})</span> <span style='color:#42b983;font-weight:bold;'>${post.likes} <i class="fa-solid fa-thumbs-up"></i></span></li>`).join('') || '<li style="color:#aaa;">No posts yet.</li>';
+      const recentPostsHtml = posts.map(post => `<li style='margin-bottom:0.5rem;'><strong>${post.title}</strong> <span style='color:#888;'>(${post.date})</span> <span style='color:#42b983;font-weight:bold;'>${post.likes} <i class=\"fa-solid fa-thumbs-up\"></i></span></li>`).join('') || '<li style="color:#aaa;">No posts yet.</li>';
       res.send(renderHome(stats, recentPostsHtml));
     });
   });

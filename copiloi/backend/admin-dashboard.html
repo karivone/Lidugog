@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #0c0c0c; }
+  body { font-family: 'Inter', sans-serif; background: #0c0c0c; }
     .sidebar {
       min-height: 100vh;
       background: #0c0c0c0c;
@@ -57,63 +57,152 @@
         </ul>
       </nav>
       <main class="col-md-10 ms-sm-auto main-content px-4">
-        <div class="card p-4 my-4">
-          <div class="section-title mb-3"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</div>
-          <canvas id="viewsChart" height="180"></canvas>
+        <div class="volt-dashboard-container" style="max-width:1200px;margin:auto;padding-top:2.5rem;">
+          <div class="volt-page-title" style="font-size:2.1rem;font-weight:700;color:#22223b;letter-spacing:-1px;margin-bottom:2.2rem;display:flex;align-items:center;gap:0.7rem;">
+            <i class="fa-solid fa-gauge-high" style="color:#42b983;font-size:1.5em;"></i>
+            Dashboard Overview
+          </div>
+          <div class="volt-row" style="display:flex;flex-wrap:wrap;gap:2.5rem 2.5rem;align-items:stretch;">
+            <div class="volt-card" style="width:100%;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;margin-bottom:2.5rem;">
+              <div style="font-size:1.18rem;color:#222;font-weight:600;margin-bottom:0.7rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class='fa-solid fa-chart-bar' style='color:#42b983;font-size:1.2em;'></i>
+                Blogs Overview
+              </div>
+              <canvas id="viewsChart" style="width:100%;height:220px;"></canvas>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:2.5rem 2.5rem;width:100%;">
+              <div class="volt-card" style="flex:1.2;min-width:320px;max-width:400px;height:340px;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;">
+                <div style="display:flex;align-items:center;gap:0.5rem;font-size:1.13rem;color:#222;font-weight:600;margin-bottom:0.5rem;">
+                  <i class="fa-solid fa-chart-line" style="color:#42b983;font-size:1.2em;"></i>
+                  Customers
+                </div>
+                <div id="customerFlowMetrics" style="font-size:1.05rem;color:#222;margin-bottom:0.7rem;line-height:1.6;"></div>
+                <canvas id="customerFlowChart" width="320" height="120" style="display:block;margin:auto;"></canvas>
+              </div>
+              <div class="volt-card" style="flex:1;min-width:260px;max-width:320px;height:340px;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;text-align:center;">
+                <h3 style="color:#222;font-size:1.1rem;margin-bottom:1rem;font-weight:600;">Traffic Share by Device</h3>
+                <div style="width:180px;height:180px;margin:auto;">
+                  <canvas id="deviceShareChart" width="180" height="180" style="display:block;margin:auto;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Tab switching for all tabs (including sidebar)
-    const tabs = ['Blogs', 'Comments', 'Subscriptions', 'Contacts'];
-    tabs.forEach(tab => {
-      const tabBtn = document.getElementById('tab'+tab);
-      if (tabBtn) tabBtn.onclick = () => switchTab(tab);
-      const sidebar = document.getElementById('sidebar'+tab);
-      if (sidebar) sidebar.onclick = (e) => { e.preventDefault(); switchTab(tab); };
-    });
-    function switchTab(tab) {
-      tabs.forEach(t => {
-        const tabBtn = document.getElementById('tab'+t);
-        const tabSection = document.getElementById('section'+t);
-        if (tabBtn) tabBtn.classList.remove('active');
-        if (tabSection) tabSection.classList.remove('active');
+    // Blog Performance Chart for Dashboard
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then(posts => {
+        // Chart: Top 5 posts by views
+        const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,5);
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: topPosts.map(p => p.title.length > 18 ? p.title.slice(0,18)+'…' : p.title),
+            datasets: [{
+              label: 'Views',
+              data: topPosts.map(p => p.views || 0),
+              backgroundColor: '#42b983',
+              borderRadius: 8,
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#222', font: { weight: 600 } } },
+              y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
+            },
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2.2,
+          }
+        });
       });
-      const activeTabBtn = document.getElementById('tab'+tab);
-      const activeTabSection = document.getElementById('section'+tab);
-      if (activeTabBtn) activeTabBtn.classList.add('active');
-      if (activeTabSection) activeTabSection.classList.add('active');
-      if(tab === 'Blogs') fetchBlogsTab();
-      if(tab === 'Subscriptions') fetchSubscriptionsTab();
-    }
 
-    // Fetch and render blogs for Blogs tab
-    async function fetchBlogsTab() {
-      const res = await fetch('/api/posts');
-      const blogs = await res.json();
-      let html = `<table><tr><th>ID</th><th>Title</th><th>Author</th><th>Date</th><th>Likes</th><th>Views</th></tr>`;
-      blogs.forEach(blog => {
-        html += `<tr><td>${blog.id}</td><td>${blog.title}</td><td>${blog.author}</td><td>${blog.date}</td><td>${blog.likes}</td><td>${blog.views||0}</td></tr>`;
+    // Customer Flow (Monthly Visits)
+    fetch('/api/visits/monthly')
+      .then(res => res.json())
+      .then(months => {
+        const labels = months.map(m => m.month);
+        const data = months.map(m => m.count);
+        const ctx = document.getElementById('customerFlowChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Visits',
+              data,
+              borderColor: '#42b983',
+              backgroundColor: 'rgba(66,185,131,0.12)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+            }]
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#222' } },
+              y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          }
+        });
+        // Show meta info and improvement/decline
+        if (data.length > 1) {
+          const prev = data[data.length-2];
+          const curr = data[data.length-1];
+          const diff = curr - prev;
+          const pct = prev ? ((diff/prev)*100).toFixed(1) : 'N/A';
+          function formatMonth(ym) {
+            const [y, m] = ym.split('-');
+            const d = new Date(y, m-1, 1);
+            return d.toLocaleString('default', { month: 'short', year: '2-digit' });
+          }
+          const range = `${formatMonth(labels[labels.length-2])} - ${formatMonth(labels[labels.length-1])}, WorldWide`;
+          let changeText = '';
+          if (diff > 0) changeText = `<span style=\"color:#42b983;font-weight:bold;\">▲ ${pct}% Since last month</span>`;
+          else if (diff < 0) changeText = `<span style=\"color:#e74c3c;font-weight:bold;\">▼ ${pct}% Since last month</span>`;
+          else changeText = `<span style=\"color:#888;\">No change from last month</span>`;
+          document.getElementById('customerFlowMetrics').innerHTML =
+            `${curr} customers (visits) for the current period<br>${range}<br>${changeText}`;
+        } else if (data.length === 1) {
+          function formatMonth(ym) {
+            const [y, m] = ym.split('-');
+            const d = new Date(y, m-1, 1);
+            return d.toLocaleString('default', { month: 'short', year: '2-digit' });
+          }
+          document.getElementById('customerFlowMetrics').innerHTML =
+            `${data[0]} customers (visits) for the current period<br>${formatMonth(labels[0])}, WorldWide`;
+        }
       });
-      html += `</table>`;
-      document.getElementById('blogsTable').innerHTML = html;
-    }
 
-    // Fetch and render subscriptions for Subscriptions tab
-    async function fetchSubscriptionsTab() {
-      const res = await fetch('/api/subscriptions');
-      const subs = await res.json();
-      let html = `<table><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Gender</th><th>Age</th><th>Country</th><th>Date</th></tr>`;
-      subs.forEach(sub => {
-        html += `<tr><td>${sub.id}</td><td>${sub.firstName}</td><td>${sub.lastName}</td><td>${sub.email}</td><td>${sub.gender||''}</td><td>${sub.age||''}</td><td>${sub.country||''}</td><td>${sub.date}</td></tr>`;
+    // Device Share (Traffic Share)
+    fetch('/api/visits/devices')
+      .then(res => res.json())
+      .then(devices => {
+        const ctx = document.getElementById('deviceShareChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: devices.map(d => d.device),
+            datasets: [{
+              data: devices.map(d => d.count),
+              backgroundColor: ['#42b983','#f1c40f','#888'],
+            }]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom', labels: { color: '#222', font: { weight: 600 } } } },
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+          }
+        });
       });
-      html += `</table>`;
-      document.getElementById('subscriptionsTable').innerHTML = html;
-    }
-
-    // Initial load
-    fetchBlogsTab();
-    // Load Chart.js
-    const chartScript = document.createElement('script');
-    chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-    chartScript.onload = () => { renderCharts(); };
+  </script>
