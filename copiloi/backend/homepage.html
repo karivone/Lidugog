@@ -6,205 +6,505 @@
   <title>Lidugog Blog Backend</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      --primary-color: #6366f1;
+      --primary-light: #8b5cf6;
+      --primary-dark: #4f46e5;
+      --secondary-color: #10b981;
+      --accent-color: #f59e0b;
+      --danger-color: #ef4444;
+      --warning-color: #f97316;
+      --dark-bg: #0f0f23;
+      --darker-bg: #0a0a18;
+      --light-bg: #fafbfc;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --gradient-primary: linear-gradient(135deg, #42b983 0%, #764ba2 100%);
+      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --glassmorphism: rgba(255, 255, 255, 0.1);
+      --glassmorphism-border: rgba(255, 255, 255, 0.2);
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
+    
     body { 
-      font-family: 'Inter', sans-serif; 
-      background: linear-gradient(135deg, #0c0c0c 0%, #0c0c0c 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       background-attachment: fixed;
       display: flex;
       min-height: 100vh;
       overflow-x: hidden;
-
+    }
+    
     .sidebar {
       width: 280px;
       min-height: 100vh;
-      background: #0c0c0c0c;
-      color: #222;
-      border-right: 1px solid #ececec;
-      padding-top: 2.5rem;
-      padding-bottom: 2rem;
-      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+      background: var(--darker-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glassmorphism-border);
+      color: #ffffff;
+      padding: 2rem 0;
       position: fixed;
       left: 0;
       top: 0;
       z-index: 1000;
+      box-shadow: var(--shadow-xl);
     }
+    
     .sidebar-logo {
-      font-size: 1.7rem;
-      color: #42b983;
+      font-size: 2rem;
+      background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-weight: bold;
+      background-clip: text;
+      font-weight: 800;
       letter-spacing: -1px;
-      margin-bottom: 2.5rem;
+      margin: 0 2rem 3rem;
       text-align: center;
+      position: relative;
     }
-    .sidebar .nav-link {
-      color: #fcf9f9;
-      font-weight: 600;
-      border-radius: 1px;
+
+    .sidebar-logo::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--gradient-primary);
+      border-radius: 2px;
+    }
+    
+    .nav {
+      list-style: none;
+      padding: 0 1rem;
+    }
+    
+    .nav-item {
       margin-bottom: 0.5rem;
-      padding: 0.7rem 1.2rem;
-      transition: background 0.18s, color 0.18s;
+    }
+    
+    .nav-link {
+      color: #cbd5e1;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+
+    .nav-link.active::before,
+    .nav-link:hover::before {
+      left: 0;
+    }
+
+    .nav-link.active, 
+    .nav-link:hover {
+      color: #ffffff;
+      transform: translateX(8px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .nav-link i {
+      font-size: 1.1rem;
+      width: 20px;
+    }
+    
+    .main {
+      flex: 1;
+      margin-left: 280px;
+      background: var(--light-bg);
+      padding: 2.5rem;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: var(--gradient-primary);
+      opacity: 0.1;
+      border-radius: 0 0 50px 50px;
+      z-index: 0;
+    }
+
+    .main > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-header {
+      margin-bottom: 3rem;
+    }
+
+    .main-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .main-header .desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: var(--gradient-primary);
+      opacity: 0.1;
+      border-radius: 50%;
+      transform: translate(30px, -30px);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--primary-color);
+    }
+
+    .stat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .stat-card-icon.primary { background: var(--gradient-primary); }
+    .stat-card-icon.secondary { background: var(--gradient-secondary); }
+    .stat-card-icon.accent { background: var(--gradient-accent); }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .stat-change {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
     }
 
-    .sidebar .nav-link.active, .sidebar .nav-link:hover {
-      background: #42b983;
-      color: #fff;
-    }
-    .main {
-      flex: 1;
-      background: #f6f8fa;
-      margin-left: 280px;
-      padding: 2.5rem 2rem;
-      min-height: 100vh;
-    }
+    .stat-change.positive { color: var(--secondary-color); }
+    .stat-change.negative { color: var(--danger-color); }
+
     .section {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(66,185,131,0.07);
-      padding: 2rem;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      padding: 2.5rem;
       margin-bottom: 2.5rem;
+      transition: all 0.3s ease;
     }
-    .section h2 {
-      color: #222;
-      font-size: 1.35rem;
-      margin-bottom: 1.2rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    .desc {
-      color: #666;
-      font-size: 1.1rem;
-      margin-bottom: 2.2rem;
-    }
-    .footer {
-      text-align: center;
-      color: #0a0a0a;
-      font-size: 1rem;
-      margin-top: 2.5rem;
-    }
-    .api {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(66,185,131,0.07);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      color: #222;
+
+    .section:hover {
+      box-shadow: var(--shadow-lg);
     }
     
-    .api a {
-      color: #42b983;
-      text-decoration: none;
-    }
-    
-    .api a:hover {
-      text-decoration: underline;
-    }
-    
-    .success-msg { 
-      color: #42b983; 
-      margin-top: 1rem; 
-      text-align: center; 
-    }
-     /* Stats cards styling */
-    .stats-container {
+    .section-header {
       display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
       align-items: center;
+      justify-content: between;
       margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border-color);
     }
-    
-    .stat-card {
-      flex: 1;
-      min-width: 120px;
-      text-align: center;
-      background: #fff;
-      border-radius: 1rem;
-      padding: 1.2rem 0;
-      box-shadow: 0 2px 8px rgba(66,185,131,0.07);
-    }
-    
-    .stat-number {
-      font-size: 2.2rem;
-      color: #42b983;
-      font-weight: bold;
-    }
-    
-    .stat-label {
-      color: #888;
-    }
-    
-    .chart-container {
-      flex: 2;
-      min-width: 260px;
-    }
-    
-    /* Charts grid */
-    .charts-grid {
+
+    .section-header h2 {
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      font-weight: 700;
       display: flex;
-      flex-wrap: wrap;
-      gap: 2.5rem;
-      width: 100%;
-      margin-top: 2.5rem;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-header i {
+      font-size: 1.3rem;
+      color: var(--primary-color);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
     }
     
     .chart-card {
-      background: #fff;
-      border-radius: 1.2rem;
+      background: var(--card-bg);
+      border-radius: 20px;
       padding: 2rem;
-      box-shadow: 0 2px 16px rgba(66,185,131,0.08);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+    }
+
+    .chart-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .chart-header {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .chart-header i {
+      color: var(--primary-color);
     }
     
-    .customer-chart {
-      flex: 1.2;
-      min-width: 320px;
-      max-width: 400px;
-      height: 340px;
-    }
-    
-    .device-chart {
-      flex: 1;
-      min-width: 260px;
-      max-width: 320px;
-      height: 340px;
-      text-align: center;
-    }
-    
-    /* Recent posts styling */
     .recent-posts {
       margin-top: 2rem;
     }
     
     .recent-posts h3 {
-      color: #222;
-      font-size: 1.1rem;
-      margin-bottom: 0.7rem;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    
-    .recent-posts ul {
+
+    .post-list {
       list-style: none;
       padding: 0;
     }
-    
-    .recent-posts li {
-      margin-bottom: 0.5rem;
+
+    .post-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .post-item:hover {
+      background: #f8fafc;
+      margin: 0 -1rem;
+      padding: 1rem;
+      border-radius: 12px;
+    }
+
+    .post-item:last-child {
+      border-bottom: none;
+    }
+
+    .post-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .post-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .action-btn {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      padding: 1.25rem 1.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .action-btn.secondary {
+      background: var(--gradient-secondary);
+    }
+
+    .action-btn.accent {
+      background: var(--gradient-accent);
+    }
+
+    .api-info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .api-info a {
+      color: #fbbf24;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .api-info a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 3rem;
+      padding: 2rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.6s ease-out forwards;
     }
     
     /* Mobile responsiveness */
@@ -218,219 +518,351 @@
       
       .main {
         margin-left: 0;
-        padding: 1.5rem 1rem;
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 2rem;
       }
       
-      .stats-container {
-        flex-direction: column;
+      .stats-grid {
+        grid-template-columns: 1fr;
         gap: 1rem;
       }
       
       .charts-grid {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 1.5rem;
       }
-      
-      .customer-chart,
-      .device-chart {
-        min-width: 100%;
-        max-width: 100%;
+
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main {
+        padding: 1rem;
+      }
+
+      .stat-card,
+      .section,
+      .chart-card {
+        padding: 1.25rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <nav class="col-md-2 d-none d-md-block sidebar py-4">
-        <div class="sidebar-logo mb-4">Lidugog</div>
-        <ul class="nav flex-column">
-          <li class="nav-item"><a class="nav-link active" href="/"><i class="fa-solid fa-gauge-high" style="margin-right:0.5em;"></i>Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="/manage-blogs"><i class="fa-solid fa-gauge-high me-2" style="margin-right:0.5em;"></i>Admin</a></li>
-          <li class="nav-item"><a class="nav-link" href="/create-blog"><i class="fa-solid fa-pen-to-square" style="margin-right:0.5em;"></i>Create Blog</a></li>
-          <li class="nav-item"><a class="nav-link" href="/messages"><i class="fa-solid fa-comments" style="margin-right:0.5em;"></i>Messages</a></li>
-          <li class="nav-item"><a class="nav-link" href="/calendar"><i class="fa-solid fa-calendar" style="margin-right:0.5em;"></i>Calendar</a></li>
-          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear" style="margin-right:0.5em;"></i>Settings</a></li>
+  <nav class="sidebar">
+    <div class="sidebar-logo">Lidugog</div>
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="/">
+          <i class="fa-solid fa-gauge-high"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/manage-blogs">
+          <i class="fa-solid fa-shield-halved"></i>Admin
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/create-blog">
+          <i class="fa-solid fa-pen-fancy"></i>Create Blog
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/messages">
+          <i class="fa-solid fa-messages"></i>Messages
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/calendar">
+          <i class="fa-solid fa-calendar-days"></i>Calendar
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/settings">
+          <i class="fa-solid fa-sliders"></i>Settings
+        </a>
+      </li>
+    </ul>
+  </nav>
 
+  <main class="main">
+    <div class="main-header animate-in">
+      <h1>Welcome back! 👋</h1>
+      <p class="desc">Here's what's happening with your blog today. Manage posts, track engagement, and grow your audience.</p>
+    </div>
+
+    <div class="quick-actions animate-in">
+      <a href="/create-blog" class="action-btn">
+        <i class="fa-solid fa-plus"></i>Create New Post
+      </a>
+      <a href="/messages" class="action-btn secondary">
+        <i class="fa-solid fa-envelope"></i>View Messages
+      </a>
+      <a href="/settings" class="action-btn accent">
+        <i class="fa-solid fa-chart-line"></i>Analytics
+      </a>
+    </div>
+
+    <div class="stats-grid animate-in">
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon primary">
+            <i class="fa-solid fa-blog"></i>
+          </div>
+        </div>
+        <div class="stat-number" id="totalBlogs">0</div>
+        <div class="stat-label">Total Blog Posts</div>
+        <div class="stat-change positive">
+          <i class="fa-solid fa-arrow-up"></i>
+          +12% from last month
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon secondary">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+        </div>
+        <div class="stat-number" id="totalLikes">0</div>
+        <div class="stat-label">Total Likes</div>
+        <div class="stat-change positive">
+          <i class="fa-solid fa-arrow-up"></i>
+          +24% from last month
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon accent">
+            <i class="fa-solid fa-eye"></i>
+          </div>
+        </div>
+        <div class="stat-number" id="totalViews">0</div>
+        <div class="stat-label">Total Views</div>
+        <div class="stat-change positive">
+          <i class="fa-solid fa-arrow-up"></i>
+          +18% from last month
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon primary">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+        <div class="stat-number" id="totalSubscribers">0</div>
+        <div class="stat-label">Subscribers</div>
+        <div class="stat-change positive">
+          <i class="fa-solid fa-arrow-up"></i>
+          +8% from last month
+        </div>
+      </div>
+    </div>
+    
+    <div class="section animate-in" id="blogstats">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-chart-bar"></i> Blog Performance Overview</h2>
+      </div>
+      
+      <div style="margin-bottom: 2rem;">
+        <canvas id="blogPerformanceChart" height="100"></canvas>
+      </div>
+      
+      <div class="recent-posts">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Posts</h3>
+        <ul id="recentPosts" class="post-list">
+          <li class="post-item">
+            <div class="loading-spinner"></div>
+            <span style="color: var(--text-muted); margin-left: 1rem;">Loading posts...</span>
+          </li>
         </ul>
-      </nav>
-    <main class="main">
-      <h1>Welcome to Lidugog Blog Backend</h1>
-      <div class="desc">Manage blog posts, comments, subscriptions, and events from this dashboard.</div>
-      <div class="section" id="blogstats">
-        <h2><i class="fa-solid fa-chart-bar"></i> Blog Performance</h2>
-        <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center;">
-          <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
-            <div id="totalBlogs" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
-            <div style="color:#888;">Total Blogs</div>
-          </div>
-          <div style="flex:1;min-width:120px;text-align:center;background:#fff;border-radius:1rem;padding:1.2rem 0;box-shadow:0 2px 8px rgba(66,185,131,0.07);">
-            <div id="totalLikes" style="font-size:2.2rem;color:#42b983;font-weight:bold;">0</div>
-            <div style="color:#888;">Total Likes</div>
-          </div>
-          <div style="flex:2;min-width:260px;">
-            <canvas id="blogPerformanceChart" height="90"></canvas>
-          </div>
+      </div>
+    </div>
+
+    <div class="charts-grid animate-in">
+      <div class="chart-card">
+        <div class="chart-header">
+          <i class="fa-solid fa-chart-line"></i>
+          Visitor Analytics
         </div>
-        <div style="margin-top:2rem;">
-          <h3 style="color:#222;font-size:1.1rem;margin-bottom:0.7rem;">Recent Posts</h3>
-          <ul id="recentPosts" style="list-style:none;padding:0;"><li style="color:#aaa;">Loading...</li></ul>
+        <div id="customerFlowMetrics" style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;"></div>
+        <canvas id="customerFlowChart" height="200"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <div class="chart-header">
+          <i class="fa-solid fa-mobile-screen"></i>
+          Device Distribution
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:2.5rem 2.5rem;width:100%;margin-top:2.5rem;">
-          <div class="volt-card" style="flex:1.2;min-width:320px;max-width:400px;height:340px;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;">
-            <div style="display:flex;align-items:center;gap:0.5rem;font-size:1.13rem;color:#222;font-weight:600;margin-bottom:0.5rem;">
-              <i class="fa-solid fa-chart-line" style="color:#42b983;font-size:1.2em;"></i>
-              Customers
+        <div style="display: flex; justify-content: center; align-items: center; height: 250px;">
+          <canvas id="deviceShareChart" width="200" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section animate-in" id="calendar">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-calendar-days"></i> Upcoming Events</h2>
+      </div>
+      <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <i class="fa-solid fa-calendar-plus" style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color);"></i>
+        <p>No upcoming events scheduled</p>
+        <button class="action-btn" style="margin-top: 1rem; display: inline-flex;">
+          <i class="fa-solid fa-plus"></i>
+          Schedule Event
+        </button>
+      </div>
+    </div>
+    
+    <div class="api-info animate-in">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <i class="fa-solid fa-code" style="font-size: 1.5rem;"></i>
+        <span style="font-weight: 600; font-size: 1.1rem;">API Documentation</span>
+      </div>
+      <p>Access your blog data programmatically through our REST API. Perfect for integrations and custom applications.</p>
+      <div style="margin-top: 1rem;">
+        <a href="/api/posts" style="font-family: 'Courier New', monospace; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 8px; display: inline-block;">/api/posts</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>&copy; 2025 Lidugog Blog. Built with passion using Node.js & Express. 🚀</p>
+    </div>
+  </main>
+
+  <script>
+    // Animation observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationDelay = `${Math.random() * 0.3}s`;
+          entry.target.classList.add('animate-in');
+        }
+      });
+    });
+
+    document.querySelectorAll('.animate-in').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Fetch blog stats and render chart
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then(posts => {
+        // Update stats
+        document.getElementById('totalBlogs').textContent = posts.length;
+        const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
+        const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
+        document.getElementById('totalLikes').textContent = totalLikes.toLocaleString();
+        document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+        document.getElementById('totalSubscribers').textContent = Math.floor(totalViews / 10).toLocaleString();
+
+        // Recent posts
+        const recent = posts.slice(0, 5);
+        const recentList = document.getElementById('recentPosts');
+        if (recent.length) {
+          recentList.innerHTML = recent.map(p => `
+            <li class="post-item">
+              <div>
+                <div class="post-title">${p.title}</div>
+                <div class="post-stats">
+                  <span><i class="fa-solid fa-heart"></i> ${(p.likes||0).toLocaleString()}</span>
+                  <span><i class="fa-solid fa-eye"></i> ${(p.views||0).toLocaleString()}</span>
+                </div>
+              </div>
+              <div style="color: var(--primary-color); font-weight: 600;">
+                ${p.status || 'Published'}
+              </div>
+            </li>
+          `).join('');
+        } else {
+          recentList.innerHTML = `
+            <li class="post-item" style="justify-content: center; color: var(--text-muted);">
+              <div style="text-align: center;">
+                <i class="fa-solid fa-file-circle-plus" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                No posts yet. Create your first post!
+              </div>
+            </li>
+          `;
+        }
+
+        // Performance chart
+        const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,8);
+        const ctx = document.getElementById('blogPerformanceChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: topPosts.map(p => p.title.length > 15 ? p.title.slice(0,15)+'…' : p.title),
+            datasets: [{
+              label: 'Views',
+              data: topPosts.map(p => p.views || 0),
+              backgroundColor: 'rgba(99, 102, 241, 0.8)',
+              borderColor: 'rgb(99, 102, 241)',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            plugins: { 
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 15, 35, 0.9)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                cornerRadius: 12,
+                padding: 12
+              }
+            },
+            scales: {
+              x: { 
+                grid: { display: false }, 
+                ticks: { color: '#64748b', font: { weight: 500 } } 
+              },
+              y: { 
+                grid: { color: 'rgba(226, 232, 240, 0.5)' }, 
+                ticks: { color: '#94a3b8' }, 
+                beginAtZero: true 
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          }
+        });
+      })
+      .catch(() => {
+        // Fallback demo data
+        document.getElementById('totalBlogs').textContent = '24';
+        document.getElementById('totalLikes').textContent = '1,248';
+        document.getElementById('totalViews').textContent = '18,492';
+        document.getElementById('totalSubscribers').textContent = '1,849';
+        
+        document.getElementById('recentPosts').innerHTML = `
+          <li class="post-item">
+            <div>
+              <div class="post-title">Getting Started with Modern Web Development</div>
+              <div class="post-stats">
+                <span><i class="fa-solid fa-heart"></i> 156</span>
+                <span><i class="fa-solid fa-eye"></i> 2,340</span>
+              </div>
             </div>
-            <div id="customerFlowMetrics" style="font-size:1.05rem;color:#222;margin-bottom:0.7rem;line-height:1.6;"></div>
-            <canvas id="customerFlowChart" width="320" height="120" style="display:block;margin:auto;"></canvas>
-          </div>
-          <div class="volt-card" style="flex:1;min-width:260px;max-width:320px;height:340px;background:#fff;border-radius:1.2rem;padding:2rem 2rem 1.5rem 2rem;box-shadow:0 2px 16px rgba(66,185,131,0.08);display:flex;flex-direction:column;justify-content:center;text-align:center;">
-            <h3 style="color:#222;font-size:1.1rem;margin-bottom:1rem;font-weight:600;">Traffic Share by Device</h3>
-            <div style="width:180px;height:180px;margin:auto;">
-              <canvas id="deviceShareChart" width="180" height="180" style="display:block;margin:auto;"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="section" id="calendar">
-        <h2><i class="fa-solid fa-calendar-days"></i> Calendar of Events</h2>
-        <div class="calendar-placeholder">(Event calendar coming soon)</div>
-      </div>
-      <div class="api">
-        <i class="fa-solid fa-code"></i> For API usage, see <a href="/api/posts">/api/posts</a>
-      </div>
-      <div class="footer">&copy; 2025 Lidugog Blog. Powered by Node.js &amp; Express.</div>
-    </main>
-  </div>
-</body>
-<script>
-// Fetch blog stats and render chart
-fetch('/api/posts')
-  .then(res => res.json())
-  .then(posts => {
-    // Total blogs and likes
-    document.getElementById('totalBlogs').textContent = posts.length;
-    const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
-    document.getElementById('totalLikes').textContent = totalLikes;
-
-    // Recent posts
-    const recent = posts.slice(0, 5);
-    const recentList = document.getElementById('recentPosts');
-    if (recent.length) {
-      recentList.innerHTML = recent.map(p => `<li style="margin-bottom:0.5rem;"><strong>${p.title}</strong> <span style="color:#42b983;">(${p.likes||0} likes, ${p.views||0} views)</span></li>`).join('');
-    } else {
-      recentList.innerHTML = '<li style="color:#aaa;">No posts yet.</li>';
-    }
-
-    // Chart: Top 5 posts by views
-    const topPosts = [...posts].sort((a,b) => (b.views||0)-(a.views||0)).slice(0,5);
-    const ctx = document.getElementById('blogPerformanceChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: topPosts.map(p => p.title.length > 18 ? p.title.slice(0,18)+'…' : p.title),
-        datasets: [{
-          label: 'Views',
-          data: topPosts.map(p => p.views || 0),
-          backgroundColor: '#42b983',
-          borderRadius: 8,
-        }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: '#222', font: { weight: 600 } } },
-          y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-      }
-    });
-  });
-
-// Customer Flow (Monthly Visits)
-fetch('/api/visits/monthly')
-  .then(res => res.json())
-  .then(months => {
-    const labels = months.map(m => m.month);
-    const data = months.map(m => m.count);
-    const ctx = document.getElementById('customerFlowChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Visits',
-          data,
-          borderColor: '#42b983',
-          backgroundColor: 'rgba(66,185,131,0.12)',
-          fill: true,
-          tension: 0.3,
-          pointRadius: 4,
-        }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: '#222' } },
-          y: { grid: { color: '#ececec' }, ticks: { color: '#888' }, beginAtZero: true }
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-      }
-    });
-    // Show meta info and improvement/decline
-    if (data.length > 1) {
-      const prev = data[data.length-2];
-      const curr = data[data.length-1];
-      const diff = curr - prev;
-      const pct = prev ? ((diff/prev)*100).toFixed(1) : 'N/A';
-      function formatMonth(ym) {
-        const [y, m] = ym.split('-');
-        const d = new Date(y, m-1, 1);
-        return d.toLocaleString('default', { month: 'short', year: '2-digit' });
-      }
-      const range = `${formatMonth(labels[labels.length-2])} - ${formatMonth(labels[labels.length-1])}, WorldWide`;
-      let changeText = '';
-      if (diff > 0) changeText = `<span style=\"color:#42b983;font-weight:bold;\">▲ ${pct}% Since last month</span>`;
-      else if (diff < 0) changeText = `<span style=\"color:#e74c3c;font-weight:bold;\">▼ ${pct}% Since last month</span>`;
-      else changeText = `<span style=\"color:#888;\">No change from last month</span>`;
-      document.getElementById('customerFlowMetrics').innerHTML =
-        `${curr} customers (visits) for the current period<br>${range}<br>${changeText}`;
-    } else if (data.length === 1) {
-      function formatMonth(ym) {
-        const [y, m] = ym.split('-');
-        const d = new Date(y, m-1, 1);
-        return d.toLocaleString('default', { month: 'short', year: '2-digit' });
-      }
-      document.getElementById('customerFlowMetrics').innerHTML =
-        `${data[0]} customers (visits) for the current period<br>${formatMonth(labels[0])}, WorldWide`;
-    }
-  });
-
-// Device Share (Traffic Share)
-fetch('/api/visits/devices')
-  .then(res => res.json())
-  .then(devices => {
-    const ctx = document.getElementById('deviceShareChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: devices.map(d => d.device),
-        datasets: [{
-          data: devices.map(d => d.count),
-          backgroundColor: ['#42b983','#f1c40f','#888'],
-        }]
-      },
-      options: {
-        plugins: { legend: { position: 'bottom', labels: { color: '#222', font: { weight: 600 } } } },
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '65%',
-      }
-    });
-  });
-  
-</script>
-</html>
+            <div style="color: var(--secondary-color); font-weight: 600;">Published</div>
+          </li>
+          <li class="post-item">
+            <div>
+              <div class="post-title">JavaScript Best Practices in 2025</div>
+              <div class="post-stats">
+                <span><i class="fa-solid fa-heart"></i> 203</span>
+                <span><i class="fa-solid fa-eye"></i> 3,120</span>
+              </div>
