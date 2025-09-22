@@ -10,35 +10,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background: #f6f8fa; }
+    body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
     .sidebar {
       min-height: 100vh;
-      background: #0c0c0c;
-      color: #222222;
+      background: #030303;
+      color: #222;
       border-right: 1px solid #ececec;
       padding-top: 2.5rem;
       padding-bottom: 2rem;
       box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
     }
-    .sidebar-logo {
-      font-size: 2rem;
-      color: #42b983;
-      font-weight: bold;
-      letter-spacing: -1px;
-      margin-bottom: 2.5rem;
-      text-align: center;
-    }
-    .nav.flex-column {
-      width: 100%;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .nav-item {
-      margin-bottom: 0.5rem;
-    }
     .sidebar .nav-link {
-      color: #f5f5f5;
+      color: #faf8f8;
       font-weight: 600;
       border-radius: 8px;
       margin-bottom: 0.5rem;
@@ -47,46 +30,20 @@
     }
     .sidebar .nav-link.active, .sidebar .nav-link:hover {
       background: #42b983;
-      color: #fff !important;
+      color: #fff;
     }
-    .main {
-      flex: 1;
-      background: #f6f8fa;
-      padding: 2.5rem 2rem 2rem 2rem;
-      min-height: 100vh;
-    }
-    .section {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(66,185,131,0.07);
-      padding: 2rem 2rem 1.5rem 2rem;
+    .sidebar-logo {
+      font-size: 1.7rem;
+      color: #42b983;
+      font-weight: bold;
+      letter-spacing: -1px;
       margin-bottom: 2.5rem;
-    }
-    .section h2 {
-      color: #222;
-      font-size: 1.35rem;
-      margin-bottom: 1.2rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    .desc {
-      color: #666;
-      font-size: 1.1rem;
-      margin-bottom: 2.2rem;
-    }
-    .footer {
       text-align: center;
-      color: #0a0a0a;
-      font-size: 2rem;
-      margin-top: 2.5rem;
     }
-    @media (max-width: 900px) {
-      .main { padding: 1.2rem 0.5rem; }
-      .section { padding: 1.2rem 0.7rem; }
-      .sidebar { width: 100px; padding-left: 0.2rem; padding-right: 0.2rem; }
-      .sidebar-logo { font-size: 1.1rem; }
-      .nav-link { font-size: 0.98rem; padding: 0.6rem 0.7rem; }
-    }
+    .main-content { background: #f8f9fa; min-height: 100vh; }
+    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
+    .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
   </style>
 </head>
 <body>

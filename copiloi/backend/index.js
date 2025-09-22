@@ -296,7 +296,10 @@ function logVisit(pathName) {
     next();
   };
 }
-
+// Serve homepage at /
+app.get('/', logVisit('/'), (req, res) => {
+  res.sendFile(path.join(__dirname, 'homepage.html'));
+});
 
 // Serve admin dashboard at /admin
 app.get('/admin', logVisit('/admin'), (req, res) => {
