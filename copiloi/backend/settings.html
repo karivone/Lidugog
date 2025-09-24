@@ -608,88 +608,54 @@
   </main>
 
   <script>
-    // Mock users data - replace with actual backend data
-    const users = [
-      {
-        id: 1,
-        username: 'admin',
-        email: 'admin@lidugog.com',
-        role: 'admin',
-        created_at: '2025-01-01T10:00:00Z'
-      },
-      {
-        id: 2,
-        username: 'editor1',
-        email: 'editor@lidugog.com',
-        role: 'editor',
-        created_at: '2025-01-05T14:30:00Z'
-      }
-    ];
 
-    function renderUsers() {
+    async function fetchAndRenderUsers() {
       const usersContent = document.getElementById('usersContent');
-      
-      if (users.length === 0) {
-        usersContent.innerHTML = `
-          <div class="empty-state">
-            <i class="fa-solid fa-user-plus"></i>
-            <h3>No users yet</h3>
-            <p>Add your first user to get started</p>
-          </div>
-        `;
-        return;
+      usersContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-users"></i><h3>Loading users...</h3></div>`;
+      try {
+        const res = await fetch('http://localhost:4000/api/users');
+        let users;
+        const text = await res.text();
+        try {
+          users = JSON.parse(text);
+        } catch (jsonErr) {
+          usersContent.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i><h3>Error loading users</h3><p>Server returned an unexpected response. Please check your backend API.</p></div>';
+          return;
+        }
+        if (!Array.isArray(users) || users.length === 0) {
+          usersContent.innerHTML = '<div class="empty-state"><i class="fa-solid fa-user-plus"></i><h3>No users yet</h3><p>Add your first user to get started</p></div>';
+          return;
+        }
+        usersContent.innerHTML = '<table class="users-table"><thead><tr><th>User</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+          users.map(function(user) {
+            return '<tr>' +
+              '<td><div class="user-name">' + user.username + '</div>' +
+              (user.email ? '<div class="user-email">' + user.email + '</div>' : '') + '</td>' +
+              '<td><span class="user-role ' + user.role + '">' + user.role + '</span></td>' +
+              '<td>' + new Date(user.created_at).toLocaleDateString() + '</td>' +
+              '<td><div class="user-actions">' +
+                '<form method="POST" action="/settings/edit-user" class="role-update-form">' +
+                  '<input type="hidden" name="id" value="' + user.id + '" />' +
+                  '<select name="role" class="role-select">' +
+                    '<option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin</option>' +
+                    '<option value="editor"' + (user.role === 'editor' ? ' selected' : '') + '>Editor</option>' +
+                  '</select>' +
+                  '<button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check"></i></button>' +
+                '</form>' +
+                '<form method="POST" action="/settings/delete-user" style="display:inline;" onsubmit="return confirm(\'Are you sure you want to delete this user? This action cannot be undone.\')">' +
+                  '<input type="hidden" name="id" value="' + user.id + '" />' +
+                  '<button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>' +
+                '</form>' +
+              '</div></td>' +
+            '</tr>';
+          }).join('') + '</tbody></table>';
+      } catch (err) {
+        usersContent.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i><h3>Error loading users</h3><p>' + err.message + '</p></div>';
       }
-
-      usersContent.innerHTML = `
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${users.map(user => `
-              <tr>
-                <td>
-                  <div class="user-name">${user.username}</div>
-                  ${user.email ? `<div class="user-email">${user.email}</div>` : ''}
-                </td>
-                <td>
-                  <span class="user-role ${user.role}">${user.role}</span>
-                </td>
-                <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                <td>
-                  <div class="user-actions">
-                    <form method="POST" action="/settings/edit-user" class="role-update-form">
-                      <input type="hidden" name="id" value="${user.id}" />
-                      <select name="role" class="role-select">
-                        <option value="admin"${user.role === 'admin' ? ' selected' : ''}>Admin</option>
-                        <option value="editor"${user.role === 'editor' ? ' selected' : ''}>Editor</option>
-                      </select>
-                      <button type="submit" class="btn btn-success btn-sm">
-                        <i class="fa-solid fa-check"></i>
-                      </button>
-                    </form>
-                    <form method="POST" action="/settings/delete-user" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
-                      <input type="hidden" name="id" value="${user.id}" />
-                      <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
     }
 
     // Initialize
-    renderUsers();
+    fetchAndRenderUsers();
 
     // Form validation
     const form = document.querySelector('form[action="/settings/add-user"]');

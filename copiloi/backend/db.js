@@ -48,6 +48,17 @@ db.run('ALTER TABLE subscriptions ADD COLUMN country TEXT', err => {});
     date TEXT NOT NULL
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    location TEXT,
+    color TEXT,
+    created_at TEXT NOT NULL
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,

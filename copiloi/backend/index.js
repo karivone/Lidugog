@@ -18,6 +18,10 @@ app.use(express.json());
 app.get('/manage-blogs', (req, res) => {
   res.sendFile(path.join(__dirname, 'manage-blogs.html'));
 });
+// Serve messages page at /messages
+app.get('/messages', (req, res) => {
+  res.sendFile(path.join(__dirname, 'messages.html'));
+});
 // serve settings at /settings
 app.get('/settings', (req, res) => {
   res.sendFile(path.join(__dirname, 'settings.html'));
@@ -61,6 +65,119 @@ app.get('/api/subscribers/monthly', (req, res) => {
     res.json(rows.reverse()); // chronological order
   });
 });
+});
+// API endpoint to get all users
+app.get('/api/users', (req, res) => {
+  db.all('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC', [], (err, users) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(users);
+  });
+});
+// API endpoint to get all reader messages
+app.get('/api/contacts', (req, res) => {
+  db.all('SELECT * FROM contacts ORDER BY date DESC LIMIT 50', [], (err, messages) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(messages);
+  });
+});
+
+// API endpoint to create a new event
+app.post('/api/events', (req, res) => {
+  const { title, description, start_date, end_date, location, color } = req.body;
+  
+  if (!title || !start_date || !end_date) {
+    return res.status(400).json({ error: 'Title, start date, and end date are required.' });
+  }
+
+  const created_at = new Date().toISOString();
+  
+  db.run(
+    'INSERT INTO events (title, description, start_date, end_date, location, color, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, description || '', start_date, end_date, location || '', color || '#6366f1', created_at],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'Failed to create event.' });
+      
+      // Return the created event
+      db.get('SELECT * FROM events WHERE id = ?', [this.lastID], (err, event) => {
+        if (err) return res.status(500).json({ error: 'Failed to retrieve created event.' });
+        res.status(201).json(event);
+      });
+    }
+  );
+});
+
+// API endpoint to get all events
+app.get('/api/events', (req, res) => {
+  db.all('SELECT * FROM events ORDER BY start_date ASC', [], (err, events) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(events);
+  });
+});
+
+// API endpoint to get upcoming events
+app.get('/api/events/upcoming', (req, res) => {
+  const today = new Date().toISOString();
+  db.all(
+    'SELECT * FROM events WHERE start_date >= ? ORDER BY start_date ASC LIMIT 10',
+    [today],
+    (err, events) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(events);
+    }
+  );
+});
+
+// API endpoint to update an event
+app.put('/api/events/:id', (req, res) => {
+  const { title, description, start_date, end_date, location, color } = req.body;
+  
+  if (!title || !start_date || !end_date) {
+    return res.status(400).json({ error: 'Title, start date, and end date are required.' });
+  }
+
+  db.run(
+    `UPDATE events 
+     SET title = ?, description = ?, start_date = ?, end_date = ?, location = ?, color = ?
+     WHERE id = ?`,
+    [title, description || '', start_date, end_date, location || '', color || '#6366f1', req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'Failed to update event.' });
+      if (this.changes === 0) return res.status(404).json({ error: 'Event not found.' });
+      
+      db.get('SELECT * FROM events WHERE id = ?', [req.params.id], (err, event) => {
+        if (err) return res.status(500).json({ error: 'Failed to retrieve updated event.' });
+        res.json(event);
+      });
+    }
+  );
+});
+
+// API endpoint to delete an event
+app.delete('/api/events/:id', (req, res) => {
+  db.run('DELETE FROM events WHERE id = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: 'Failed to delete event.' });
+    if (this.changes === 0) return res.status(404).json({ error: 'Event not found.' });
+    res.json({ message: 'Event deleted successfully.' });
+  });
+});
+
+// API endpoint to submit a new contact message
+app.post('/api/contact', (req, res) => {
+  const { name, email, message } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required.' });
+  }
+  const date = new Date().toISOString();
+  db.run(
+    'INSERT INTO contacts (name, email, message, date) VALUES (?, ?, ?, ?)',
+    [name, email, message, date],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to submit message.' });
+      }
+      res.json({ message: 'Message sent successfully!' });
+    }
+  );
 });
 // ...existing code...
 // API endpoint to get all subscriptions

@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     :root {
       --primary-color: #6366f1;
@@ -97,6 +99,127 @@
     
     .nav-item {
       margin-bottom: 0.5rem;
+    }
+    
+    /* Calendar Styles */
+    .calendar-container {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      margin: 2rem;
+    }
+
+    .event-form {
+      background: var(--light-bg);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    }
+
+    .event-list {
+      margin-top: 2rem;
+    }
+
+    .event-card {
+      background: var(--light-bg);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .event-card h3 {
+      margin: 0 0 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .event-card p {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .event-meta {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .color-option {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .color-option.selected {
+      border-color: var(--primary-color);
+    }
+
+    .event-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--gradient-secondary);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--gradient-accent);
+      color: white;
     }
     
     .nav-link {
@@ -731,6 +854,182 @@
         }
       });
     });
+  </script>
+  <div class="main-content">
+    <div class="calendar-container">
+      <div class="event-form">
+        <h2>Create New Event</h2>
+        <form id="eventForm" onsubmit="handleSubmit(event)">
+          <div class="form-group">
+            <label for="title">Event Title*</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="start_date">Start Date & Time*</label>
+            <input type="text" id="start_date" name="start_date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="end_date">End Date & Time*</label>
+            <input type="text" id="end_date" name="end_date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Color</label>
+            <div class="color-picker" id="colorPicker">
+              <div class="color-option selected" style="background: #6366f1" data-color="#6366f1"></div>
+              <div class="color-option" style="background: #10b981" data-color="#10b981"></div>
+              <div class="color-option" style="background: #f59e0b" data-color="#f59e0b"></div>
+              <div class="color-option" style="background: #ef4444" data-color="#ef4444"></div>
+              <div class="color-option" style="background: #8b5cf6" data-color="#8b5cf6"></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Create Event</button>
+        </form>
+      </div>
+
+      <div class="event-list">
+        <h2>Upcoming Events</h2>
+        <div id="eventsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize date pickers
+    flatpickr("#start_date", {
+      enableTime: true,
+      dateFormat: "Y-m-d H:i",
+      minDate: "today"
+    });
+
+    flatpickr("#end_date", {
+      enableTime: true,
+      dateFormat: "Y-m-d H:i",
+      minDate: "today"
+    });
+
+    // Color picker functionality
+    const colorPicker = document.getElementById('colorPicker');
+    let selectedColor = '#6366f1';
+
+    colorPicker.addEventListener('click', (e) => {
+      if (e.target.classList.contains('color-option')) {
+        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedColor = e.target.dataset.color;
+      }
+    });
+
+    // Load events
+    async function loadEvents() {
+      try {
+        const response = await fetch('/api/events/upcoming');
+        const events = await response.json();
+        displayEvents(events);
+      } catch (error) {
+        console.error('Error loading events:', error);
+      }
+    }
+
+    // Display events
+    function displayEvents(events) {
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = events.map(event => `
+        <div class="event-card" style="border-left-color: ${event.color}">
+          <h3>${event.title}</h3>
+          ${event.description ? `<p>${event.description}</p>` : ''}
+          <div class="event-meta">
+            <div>
+              <i class="far fa-calendar"></i> ${new Date(event.start_date).toLocaleString()} - 
+              ${new Date(event.end_date).toLocaleString()}
+            </div>
+            ${event.location ? `
+              <div>
+                <i class="fas fa-map-marker-alt"></i> ${event.location}
+              </div>
+            ` : ''}
+          </div>
+          <div class="event-actions">
+            <button class="btn btn-secondary" onclick="editEvent(${event.id})">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger" onclick="deleteEvent(${event.id})">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Handle form submission
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const formData = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        start_date: document.getElementById('start_date').value,
+        end_date: document.getElementById('end_date').value,
+        location: document.getElementById('location').value,
+        color: selectedColor
+      };
+
+      try {
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) throw new Error('Failed to create event');
+
+        // Clear form
+        event.target.reset();
+        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+        document.querySelector('.color-option').classList.add('selected');
+        selectedColor = '#6366f1';
+
+        // Reload events
+        loadEvents();
+      } catch (error) {
+        console.error('Error creating event:', error);
+      }
+    }
+
+    // Delete event
+    async function deleteEvent(id) {
+      if (!confirm('Are you sure you want to delete this event?')) return;
+
+      try {
+        const response = await fetch(`/api/events/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Failed to delete event');
+
+        // Reload events
+        loadEvents();
+      } catch (error) {
+        console.error('Error deleting event:', error);
+      }
+    }
+
+    // Edit event (you can expand this function to show a modal or form for editing)
+    function editEvent(id) {
+      // Implement edit functionality
+      alert('Edit functionality coming soon!');
+    }
+
+    // Load events when page loads
+    document.addEventListener('DOMContentLoaded', loadEvents);
   </script>
 </body>
 </html>
