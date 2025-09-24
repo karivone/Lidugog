@@ -18,7 +18,10 @@ app.use(express.json());
 app.get('/manage-blogs', (req, res) => {
   res.sendFile(path.join(__dirname, 'manage-blogs.html'));
 });
-// ...existing code...
+// serve settings at /settings
+app.get('/settings', (req, res) => {
+  res.sendFile(path.join(__dirname, 'settings.html'));
+});
 // Serve calendar page at /calendar
 app.get('/calendar', (req, res) => {
   res.sendFile(path.join(__dirname, 'calendar.html'));
@@ -43,6 +46,21 @@ app.post('/api/subscribe', (req, res) => {
       res.json({ message: 'Subscription successful!' });
     }
   );
+  // API endpoint for frontend subscriptions recent
+  app.get('/api/subscribers/recent', (req, res) => {
+  db.all('SELECT firstName, lastName, email, date FROM subscriptions ORDER BY date DESC LIMIT 10', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// API endpoint to get subscriber growth by month (optional)
+app.get('/api/subscribers/monthly', (req, res) => {
+  db.all(`SELECT strftime('%Y-%m', date) as month, COUNT(*) as count FROM subscriptions GROUP BY month ORDER BY month DESC LIMIT 12`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.reverse()); // chronological order
+  });
+});
 });
 // ...existing code...
 // API endpoint to get all subscriptions

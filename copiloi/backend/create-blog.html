@@ -3,168 +3,641 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Blog - Admin</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <title>Lidugog Blog - Create Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
-    .sidebar {
+    :root {
+      --primary-color: #6366f1;
+      --primary-light: #8b5cf6;
+      --primary-dark: #4f46e5;
+      --secondary-color: #10b981;
+      --accent-color: #f59e0b;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+      --dark-bg: #0f0f23;
+      --darker-bg: #0a0a18;
+      --light-bg: #fafbfc;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --gradient-secondary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      display: flex;
       min-height: 100vh;
-      background: #030303;
-      color: #222;
-      border-right: 1px solid #ececec;
-      padding-top: 2.5rem;
-      padding-bottom: 2rem;
-      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+      overflow-x: hidden;
     }
-    .sidebar .nav-link {
-      color: #faf8f8;
-      font-weight: 600;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      padding: 0.7rem 1.2rem;
-      transition: background 0.18s, color 0.18s;
+    
+    /* Shared Sidebar Styles */
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--darker-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 2rem 0;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-xl);
     }
-    .sidebar .nav-link.active, .sidebar .nav-link:hover {
-      background: #42b983;
-      color: #fff;
-    }
+    
     .sidebar-logo {
-      font-size: 1.7rem;
-      color: #42b983;
-      font-weight: bold;
+      font-size: 2rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
       letter-spacing: -1px;
-      margin-bottom: 2.5rem;
+      margin: 0 2rem 3rem;
       text-align: center;
+      position: relative;
     }
-    .main-content { background: #f8f9fa; min-height: 100vh; }
-    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
-    .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
+
+    .sidebar-logo::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--gradient-primary);
+      border-radius: 2px;
+    }
+    
+    .nav {
+      list-style: none;
+      padding: 0 1rem;
+    }
+    
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+    
+    .nav-link {
+      color: #cbd5e1;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+
+    .nav-link.active::before,
+    .nav-link:hover::before {
+      left: 0;
+    }
+
+    .nav-link.active, 
+    .nav-link:hover {
+      color: #ffffff;
+      transform: translateX(8px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .nav-link i {
+      font-size: 1.1rem;
+      width: 20px;
+    }
+    
+    /* Main Content */
+    .main {
+      flex: 1;
+      margin-left: 280px;
+      background: var(--light-bg);
+      padding: 2.5rem;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: var(--gradient-primary);
+      opacity: 0.1;
+      border-radius: 0 0 50px 50px;
+      z-index: 0;
+    }
+
+    .main > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-header {
+      margin-bottom: 3rem;
+    }
+
+    .main-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .main-header .desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    /* Form Container */
+    .form-container {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      padding: 3rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .form-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .form-header i {
+      color: var(--primary-color);
+      font-size: 1.5rem;
+    }
+
+    .form-header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    /* Form Styles */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+    }
+
+    .form-file {
+      padding: 0.75rem;
+      background: var(--light-bg);
+    }
+
+    .form-help {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Image Upload Styles */
+    .image-upload-section {
+      background: var(--light-bg);
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .image-upload-section:hover {
+      border-color: var(--primary-color);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .upload-text {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .upload-subtext {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Submit Button */
+    .submit-section {
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .btn-submit {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      padding: 1.25rem 3rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 200px;
+      justify-content: center;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Success/Error Messages */
+    .message {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+    }
+
+    .message.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border: 2px solid rgba(16, 185, 129, 0.2);
+      display: block;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger-color);
+      border: 2px solid rgba(239, 68, 68, 0.2);
+      display: block;
+    }
+
+    /* Loading States */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        min-height: auto;
+      }
+      
+      .main {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 2rem;
+      }
+
+      .form-container {
+        padding: 2rem;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main {
+        padding: 1rem;
+      }
+
+      .form-container {
+        padding: 1.5rem;
+      }
+
+      .btn-submit {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <nav class="col-md-2 d-none d-md-block sidebar py-4">
-        <div class="sidebar-logo mb-4">Lidugog</div>
-        <ul class="nav flex-column">
-          <li class="nav-item"><a class="nav-link" href="/admin"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link active" href="/create-blog"><i class="fa-solid fa-pen-to-square me-2"></i>Create Blog</a></li>
-          <li class="nav-item"><a class="nav-link" href="/manage-blogs"><i class="fa-solid fa-book me-2"></i>Manage Blogs</a></li>
-          <li class="nav-item"><a class="nav-link" href="/messages" target="_blank"><i class="fa-solid fa-address-book me-2"></i>Contacts</a></li>
-          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
-        </ul>
-      </nav>
-      <main class="col-md-10 ms-sm-auto main-content px-4">
-        <div class="card p-4 my-4">
-          <div class="volt-section-title mb-3"><i class="fa-solid fa-pen-to-square me-2"></i>Create a New Blog</div>
-          <form id="blogForm" enctype="multipart/form-data" class="row g-3">
-            <div class="col-md-6">
-              <input name="title" type="text" class="form-control" placeholder="Title*" required />
-            </div>
-            <div class="col-md-6">
-              <input name="author" type="text" class="form-control" placeholder="Author*" required />
-            </div>
-            <div class="col-md-6">
-              <input name="date" type="date" class="form-control" required />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Blog Image (upload or paste URL)</label>
-              <input name="image" type="file" class="form-control mb-2" accept="image/*" />
-              <input name="imageUrl" type="url" class="form-control" placeholder="Or paste Google image URL here" />
-              <small class="form-text text-muted">If both are provided, uploaded file will be used.</small>
-            </div>
-            <div class="col-12">
-              <textarea name="summary" class="form-control" placeholder="Summary*" required rows="3"></textarea>
-            </div>
-            <div class="col-12">
-              <button type="submit" class="btn btn-primary w-100">Create Blog</button>
-            </div>
-          </form>
-          <p id="responseMsg" class="success-msg"></p>
+  <nav class="sidebar">
+    <div class="sidebar-logo">Lidugog</div>
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/">
+          <i class="fa-solid fa-gauge-high"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/manage-blogs">
+          <i class="fa-solid fa-shield-halved"></i>Manage Blogs
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/create-blog">
+          <i class="fa-solid fa-pen-fancy"></i>Create Blog
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/messages">
+          <i class="fa-solid fa-envelope"></i>Messages
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/calendar">
+          <i class="fa-solid fa-calendar-days"></i>Calendar
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/settings">
+          <i class="fa-solid fa-sliders"></i>Settings
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="main-header">
+      <h1>Create New Blog</h1>
+      <p class="desc">Share your thoughts, insights, and stories with your audience. Create engaging content that resonates.</p>
+    </div>
+
+    <div class="form-container">
+      <div class="form-header">
+        <h2><i class="fa-solid fa-pen-fancy"></i>New Blog Post</h2>
+        <p>Fill in the details below to publish your new blog post</p>
+      </div>
+
+      <form id="blogForm" enctype="multipart/form-data">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input name="title" type="text" class="form-input" placeholder="Enter an engaging title..." required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Author *</label>
+            <input name="author" type="text" class="form-input" placeholder="Author name..." required />
+          </div>
         </div>
 
-      </main>
-    </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
-  <script>
-    async function fetchBlogs() {
-      const res = await fetch('/api/posts');
-      const blogs = await res.json();
-      const list = document.getElementById('blogList');
-      list.innerHTML = blogs.map(blog => `
-        <div class="blog-item" data-id="${blog.id}">
-          <strong>${blog.title}</strong> <span style="color:#888;">by ${blog.author} (${blog.date})</span>
-          <div>${blog.summary}</div>
-          <div class="blog-actions">
-            <button onclick="editBlog(${blog.id})">Edit</button>
-            <button class="delete" onclick="deleteBlog(${blog.id})">Delete</button>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Publication Date *</label>
+            <input name="date" type="date" class="form-input" required />
           </div>
-          <form class="edit-form" id="editForm${blog.id}" style="display:none;" enctype="multipart/form-data">
-            <input name="title" type="text" value="${blog.title}" required />
-            <input name="author" type="text" value="${blog.author}" required />
-            <input name="date" type="date" value="${blog.date}" required />
-            <textarea name="summary" required rows="3">${blog.summary}</textarea>
-            <input name="image" type="file" accept="image/*" />
-            <button type="submit">Save</button>
-            <button type="button" onclick="cancelEdit(${blog.id})">Cancel</button>
-          </form>
+          
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-input">
+              <option value="">Select a category</option>
+              <option value="technology">Technology</option>
+              <option value="lifestyle">Lifestyle</option>
+              <option value="business">Business</option>
+              <option value="health">Health</option>
+              <option value="travel">Travel</option>
+              <option value="education">Education</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
         </div>
-      `).join('');
-      blogs.forEach(blog => {
-        const form = document.getElementById('editForm'+blog.id);
-        if (form) {
-          form.onsubmit = function(e) { submitEdit(e, blog.id); };
-        }
-      });
-    }
-    fetchBlogs();
+
+        <div class="form-group full-width">
+          <label class="form-label">Blog Summary *</label>
+          <textarea name="summary" class="form-input form-textarea" placeholder="Write a compelling summary that captures the essence of your blog post..." required></textarea>
+          <div class="form-help">A good summary helps readers understand what your blog is about</div>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">Featured Image</label>
+          <div class="image-upload-section">
+            <i class="fa-solid fa-cloud-upload-alt upload-icon"></i>
+            <div class="upload-text">Upload an image or paste URL</div>
+            <div class="upload-subtext">Supported formats: JPG, PNG, GIF (max 5MB)</div>
+            
+            <input name="image" type="file" class="form-input form-file" accept="image/*" style="margin-top: 1rem;" />
+            <div style="margin: 1rem 0; color: var(--text-muted);">OR</div>
+            <input name="imageUrl" type="url" class="form-input" placeholder="Paste image URL here..." />
+          </div>
+          <div class="form-help">If both file and URL are provided, the uploaded file will be used</div>
+        </div>
+
+        <div class="submit-section">
+          <button type="submit" class="btn-submit">
+            <i class="fa-solid fa-paper-plane"></i>
+            Publish Blog Post
+          </button>
+        </div>
+
+        <div id="responseMsg" class="message"></div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // Set today's date as default
+    document.querySelector('input[name="date"]').valueAsDate = new Date();
+
     document.getElementById('blogForm').onsubmit = async function(e) {
       e.preventDefault();
+      
       const form = e.target;
-      const formData = new FormData(form);
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        body: formData
+      const submitBtn = form.querySelector('.btn-submit');
+      const messageEl = document.getElementById('responseMsg');
+      const originalBtnContent = submitBtn.innerHTML;
+      
+      // Show loading state
+      submitBtn.innerHTML = '<div class="loading-spinner"></div>Publishing...';
+      submitBtn.disabled = true;
+      messageEl.style.display = 'none';
+      
+      try {
+        const formData = new FormData(form);
+        const res = await fetch('/api/posts', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          messageEl.className = 'message success';
+          messageEl.innerHTML = `
+            <i class="fa-solid fa-check-circle" style="margin-right: 0.5rem;"></i>
+            Blog post published successfully!
+          `;
+          messageEl.style.display = 'block';
+          
+          // Reset form
+          form.reset();
+          document.querySelector('input[name="date"]').valueAsDate = new Date();
+          
+          // Scroll to message
+          messageEl.scrollIntoView({ behavior: 'smooth' });
+          
+        } else {
+          throw new Error(data.error || 'Failed to create blog post');
+        }
+      } catch (error) {
+        messageEl.className = 'message error';
+        messageEl.innerHTML = `
+          <i class="fa-solid fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+          ${error.message}
+        `;
+        messageEl.style.display = 'block';
+      } finally {
+        // Restore button state
+        submitBtn.innerHTML = originalBtnContent;
+        submitBtn.disabled = false;
+      }
+    }
+
+    // Form validation feedback
+    const inputs = document.querySelectorAll('.form-input[required]');
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+          this.style.borderColor = 'var(--danger-color)';
+        } else {
+          this.style.borderColor = 'var(--success-color)';
+        }
       });
-      const data = await res.json();
-      const msg = document.getElementById('responseMsg');
-      if (res.ok) {
-        msg.textContent = 'Blog created successfully!';
-        form.reset();
-        fetchBlogs();
+      
+      input.addEventListener('input', function() {
+        if (this.style.borderColor === 'rgb(239, 68, 68)') {
+          this.style.borderColor = 'var(--border-color)';
+        }
+      });
+    });
+
+    // Character counter for summary
+    const summaryTextarea = document.querySelector('textarea[name="summary"]');
+    summaryTextarea.addEventListener('input', function() {
+      const length = this.value.length;
+      const helpText = this.parentNode.querySelector('.form-help');
+      if (length > 0) {
+        helpText.textContent = `${length} characters - A good summary helps readers understand what your blog is about`;
       } else {
-        msg.textContent = data.error || 'Failed to create blog.';
+        helpText.textContent = 'A good summary helps readers understand what your blog is about';
       }
-    }
-    window.editBlog = function(id) {
-      document.getElementById('editForm'+id).style.display = 'block';
-    }
-    window.cancelEdit = function(id) {
-      document.getElementById('editForm'+id).style.display = 'none';
-    }
-    async function submitEdit(e, id) {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      const res = await fetch('/api/posts/'+id, {
-        method: 'PUT',
-        body: formData
-      });
-      if (res.ok) {
-        fetchBlogs();
-        form.style.display = 'none';
-      }
-    }
-    window.deleteBlog = async function(id) {
-      if (!confirm('Delete this blog?')) return;
-      const res = await fetch('/api/posts/'+id, { method: 'DELETE' });
-      if (res.ok) fetchBlogs();
-    }
+    });
   </script>
 </body>
 </html>

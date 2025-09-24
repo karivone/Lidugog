@@ -3,208 +3,674 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Blogs - Admin</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <title>Lidugog Blog - Manage Blogs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #f8f9fa; }
-    .sidebar {
+    :root {
+      --primary-color: #6366f1;
+      --primary-light: #8b5cf6;
+      --primary-dark: #4f46e5;
+      --secondary-color: #10b981;
+      --accent-color: #f59e0b;
+      --danger-color: #ef4444;
+      --dark-bg: #0f0f23;
+      --darker-bg: #0a0a18;
+      --light-bg: #fafbfc;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --gradient-secondary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      display: flex;
       min-height: 100vh;
-      background: #0c0c0c;
-      color: #222;
-      border-right: 1px solid #ececec;
-      padding-top: 2.5rem;
-      padding-bottom: 2rem;
-      box-shadow: 2px 0 8px rgba(66, 185, 131, 0.04);
+      overflow-x: hidden;
     }
-    .sidebar .nav-link {
-      color: #fcf9f9;
-      font-weight: 600;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      padding: 0.7rem 1.2rem;
-      transition: background 0.18s, color 0.18s;
+    
+    /* Shared Sidebar Styles */
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--darker-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 2rem 0;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-xl);
     }
-    .sidebar .nav-link.active, .sidebar .nav-link:hover {
-      background: #42b983;
-      color: #fff;
-    }
+    
     .sidebar-logo {
-      font-size: 1.7rem;
-      color: #42b983;
-      font-weight: bold;
+      font-size: 2rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
       letter-spacing: -1px;
-      margin-bottom: 2.5rem;
+      margin: 0 2rem 3rem;
       text-align: center;
+      position: relative;
     }
-    .main-content { background: #f8f9fa; min-height: 100vh; }
-    .card { border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .volt-section-title { font-size: 1.3rem; color: #22223b; font-weight: 600; margin-bottom: 1rem; }
-    .success-msg { color: #42b983; margin-top: 1rem; text-align: center; }
-    .blog-list {
+
+    .sidebar-logo::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--gradient-primary);
+      border-radius: 2px;
+    }
+    
+    .nav {
+      list-style: none;
+      padding: 0 1rem;
+    }
+    
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+    
+    .nav-link {
+      color: #cbd5e1;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+
+    .nav-link.active::before,
+    .nav-link:hover::before {
+      left: 0;
+    }
+
+    .nav-link.active, 
+    .nav-link:hover {
+      color: #ffffff;
+      transform: translateX(8px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .nav-link i {
+      font-size: 1.1rem;
+      width: 20px;
+    }
+    
+    /* Main Content */
+    .main {
+      flex: 1;
+      margin-left: 280px;
+      background: var(--light-bg);
+      padding: 2.5rem;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: var(--gradient-primary);
+      opacity: 0.1;
+      border-radius: 0 0 50px 50px;
+      z-index: 0;
+    }
+
+    .main > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-header {
+      margin-bottom: 3rem;
+    }
+
+    .main-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .main-header .desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+
+    /* Blog Grid */
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
       gap: 2rem;
-      justify-content: flex-start;
+      margin-top: 2rem;
     }
+
     .blog-card {
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      width: 340px;
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 1.5rem;
-      transition: box-shadow 0.2s;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
     }
+
     .blog-card:hover {
-      box-shadow: 0 4px 16px rgba(66,168,222,0.13);
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--primary-color);
     }
+
     .blog-image {
       width: 100%;
-      height: 180px;
+      height: 200px;
       object-fit: cover;
-      border-top-left-radius: 1rem;
-      border-top-right-radius: 1rem;
-      background: #f0f0f0;
-    }
-    .blog-content {
-      padding: 1.2rem 1.2rem 0.7rem 1.2rem;
-      flex: 1;
+      background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 500;
     }
+
+    .blog-content {
+      padding: 2rem;
+    }
+
     .blog-title {
-      font-size: 1.15rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      color: #22223b;
-      margin-bottom: 0.3rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
     }
+
     .blog-meta {
-      color: #888;
-      font-size: 0.98rem;
-      margin-bottom: 0.7rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
+
+    .blog-meta i {
+      color: var(--primary-color);
+    }
+
     .blog-summary {
-      color: #444;
+      color: var(--text-secondary);
       font-size: 1rem;
-      margin-bottom: 0.7rem;
-      flex: 1;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
     }
+
     .blog-actions {
       display: flex;
-      gap: 0.7rem;
-      margin-bottom: 0.5rem;
+      gap: 0.75rem;
+      align-items: center;
     }
-    .blog-actions button {
-      background: #4ea8de;
-      color: #fff;
+
+    .btn {
       border: none;
-      border-radius: 6px;
-      padding: 0.4rem 1.1rem;
-      font-size: 0.98rem;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
     }
-    .blog-actions button.delete {
-      background: #e74c3c;
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: white;
     }
+
+    .btn-danger {
+      background: var(--gradient-danger);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Edit Form */
     .edit-form {
-      margin-top: 0.7rem;
-      background: #f7f7f7;
-      padding: 0.7rem;
-      border-radius: 0.7rem;
+      margin-top: 1rem;
+      background: var(--light-bg);
+      padding: 1.5rem;
+      border-radius: 15px;
+      border: 2px solid var(--border-color);
+      display: none;
+    }
+
+    .edit-form.active {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Loading States */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border-color);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s linear infinite;
+      margin-right: 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        min-height: auto;
+      }
+      
+      .main {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 2rem;
+      }
+      
+      .blog-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .blog-actions {
+        flex-direction: column;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main {
+        padding: 1rem;
+      }
+
+      .blog-content {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <nav class="col-md-2 d-none d-md-block sidebar py-4">
-        <div class="sidebar-logo mb-4">Lidugog</div>
-        <ul class="nav flex-column">
-          <li class="nav-item"><a class="nav-link" href="/admin"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="/create-blog"><i class="fa-solid fa-pen-to-square me-2"></i>Create Blog</a></li>
-          <li class="nav-item"><a class="nav-link active" href="/manage-blogs"><i class="fa-solid fa-book me-2"></i>Manage Blogs</a></li>
-          <li class="nav-item"><a class="nav-link" href="/messages" target="_blank"><i class="fa-solid fa-address-book me-2"></i>Contacts</a></li>
-          <li class="nav-item"><a class="nav-link" href="/settings"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
-        </ul>
-      </nav>
-      <main class="col-md-10 ms-sm-auto main-content px-4">
-        <div class="card p-4 my-4">
-          <div class="volt-section-title">All Blogs</div>
-          <div class="blog-list" id="blogList"></div>
-        </div>
-      </main>
+  <nav class="sidebar">
+    <div class="sidebar-logo">Lidugog</div>
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/">
+          <i class="fa-solid fa-gauge-high"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/manage-blogs">
+          <i class="fa-solid fa-shield-halved"></i>Manage Blogs
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/create-blog">
+          <i class="fa-solid fa-pen-fancy"></i>Create Blog
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/messages">
+          <i class="fa-solid fa-envelope"></i>Messages
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/calendar">
+          <i class="fa-solid fa-calendar-days"></i>Calendar
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/settings">
+          <i class="fa-solid fa-sliders"></i>Settings
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="main-header">
+      <h1>Manage Blogs</h1>
+      <p class="desc">Edit, delete, and organize your blog posts. Keep your content fresh and engaging.</p>
     </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+
+    <div id="blogList" class="blog-grid">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Loading your blogs...
+      </div>
+    </div>
+  </main>
+
   <script>
     async function fetchBlogs() {
-      const res = await fetch('/api/posts');
-      const blogs = await res.json();
-      const list = document.getElementById('blogList');
-      list.innerHTML = blogs.map(blog => {
-        let imageUrl = blog.image ? `/uploads/${blog.image}` : 'https://via.placeholder.com/340x180?text=No+Image';
-        return `
-        <div class="blog-card" data-id="${blog.id}">
-          <img class="blog-image" src="${imageUrl}" alt="Blog Image" onerror="this.src='https://via.placeholder.com/340x180?text=No+Image'" />
-          <div class="blog-content">
-            <div class="blog-title">${blog.title}</div>
-            <div class="blog-meta">by ${blog.author} (${blog.date})</div>
-            <div class="blog-summary">${blog.summary}</div>
-            <div class="blog-actions">
-              <button onclick="editBlog(${blog.id})">Edit</button>
-              <button class="delete" onclick="deleteBlog(${blog.id})">Delete</button>
+      try {
+        const res = await fetch('/api/posts');
+        const blogs = await res.json();
+        const list = document.getElementById('blogList');
+        
+        if (blogs.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <i class="fa-solid fa-file-circle-plus"></i>
+              <h3>No blogs yet</h3>
+              <p>Start creating amazing content for your audience</p>
+              <a href="/create-blog" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                Create Your First Blog
+              </a>
             </div>
-            <form class="edit-form" id="editForm${blog.id}" style="display:none;" enctype="multipart/form-data">
-              <input name="title" type="text" value="${blog.title}" required />
-              <input name="author" type="text" value="${blog.author}" required />
-              <input name="date" type="date" value="${blog.date}" required />
-              <textarea name="summary" required rows="3">${blog.summary}</textarea>
-              <input name="image" type="file" accept="image/*" />
-              <button type="submit">Save</button>
-              <button type="button" onclick="cancelEdit(${blog.id})">Cancel</button>
-            </form>
-          </div>
-        </div>
-        `;
-      }).join('');
-      blogs.forEach(blog => {
-        const form = document.getElementById('editForm'+blog.id);
-        if (form) {
-          form.onsubmit = function(e) { submitEdit(e, blog.id); };
+          `;
+          return;
         }
-      });
+        
+        list.innerHTML = blogs.map(blog => {
+          const imageUrl = blog.image ? `/uploads/${blog.image}` : null;
+          
+          return `
+            <div class="blog-card" data-id="${blog.id}">
+              ${imageUrl ? 
+                `<img class="blog-image" src="${imageUrl}" alt="Blog Image" onerror="this.outerHTML='<div class=\\'blog-image\\'>No Image Available</div>'" />` :
+                `<div class="blog-image">No Image Available</div>`
+              }
+              <div class="blog-content">
+                <div class="blog-title">${blog.title}</div>
+                <div class="blog-meta">
+                  <span><i class="fa-solid fa-user"></i> ${blog.author}</span>
+                  <span><i class="fa-solid fa-calendar"></i> ${new Date(blog.date).toLocaleDateString()}</span>
+                </div>
+                <div class="blog-summary">${blog.summary}</div>
+                <div class="blog-actions">
+                  <button class="btn btn-primary" onclick="editBlog(${blog.id})">
+                    <i class="fa-solid fa-edit"></i>Edit
+                  </button>
+                  <button class="btn btn-danger" onclick="deleteBlog(${blog.id})">
+                    <i class="fa-solid fa-trash"></i>Delete
+                  </button>
+                </div>
+                <form class="edit-form" id="editForm${blog.id}" enctype="multipart/form-data">
+                  <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input name="title" type="text" class="form-input" value="${blog.title}" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Author</label>
+                    <input name="author" type="text" class="form-input" value="${blog.author}" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input name="date" type="date" class="form-input" value="${blog.date}" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Summary</label>
+                    <textarea name="summary" class="form-input form-textarea" required>${blog.summary}</textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Replace Image (optional)</label>
+                    <input name="image" type="file" class="form-input" accept="image/*" />
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fa-solid fa-save"></i>Save Changes
+                    </button>
+                    <button type="button" class="btn" style="background: var(--border-color); color: var(--text-secondary);" onclick="cancelEdit(${blog.id})">
+                      <i class="fa-solid fa-times"></i>Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        // Attach form handlers
+        blogs.forEach(blog => {
+          const form = document.getElementById('editForm' + blog.id);
+          if (form) {
+            form.onsubmit = function(e) { 
+              submitEdit(e, blog.id); 
+            };
+          }
+        });
+      } catch (error) {
+        document.getElementById('blogList').innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <h3>Unable to load blogs</h3>
+            <p>There was an error loading your content. Please try again.</p>
+            <button class="btn btn-primary" onclick="fetchBlogs()">
+              <i class="fa-solid fa-refresh"></i>Retry
+            </button>
+          </div>
+        `;
+      }
     }
-    fetchBlogs();
+
     window.editBlog = function(id) {
-      document.getElementById('editForm'+id).style.display = 'block';
+      const form = document.getElementById('editForm' + id);
+      form.classList.add('active');
+      form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
     window.cancelEdit = function(id) {
-      document.getElementById('editForm'+id).style.display = 'none';
+      const form = document.getElementById('editForm' + id);
+      form.classList.remove('active');
     }
+
     async function submitEdit(e, id) {
       e.preventDefault();
       const form = e.target;
-      const formData = new FormData(form);
-      const res = await fetch('/api/posts/'+id, {
-        method: 'PUT',
-        body: formData
-      });
-      if (res.ok) {
-        fetchBlogs();
-        form.style.display = 'none';
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      
+      submitBtn.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></div>Saving...';
+      submitBtn.disabled = true;
+      
+      try {
+        const formData = new FormData(form);
+        const res = await fetch('/api/posts/' + id, {
+          method: 'PUT',
+          body: formData
+        });
+        
+        if (res.ok) {
+          await fetchBlogs();
+          form.classList.remove('active');
+        } else {
+          throw new Error('Failed to update blog');
+        }
+      } catch (error) {
+        alert('Error updating blog. Please try again.');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       }
     }
+
     window.deleteBlog = async function(id) {
-      if (!confirm('Delete this blog?')) return;
-      const res = await fetch('/api/posts/'+id, { method: 'DELETE' });
-      if (res.ok) fetchBlogs();
+      if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/posts/' + id, { 
+          method: 'DELETE' 
+        });
+        
+        if (res.ok) {
+          await fetchBlogs();
+        } else {
+          throw new Error('Failed to delete blog');
+        }
+      } catch (error) {
+        alert('Error deleting blog. Please try again.');
+      }
     }
+
+    // Initialize
+    fetchBlogs();
   </script>
 </body>
 </html>
