@@ -1,23 +1,53 @@
 <template>
   <div class="blog-list">
     <div v-for="(post, idx) in posts" :key="post.id" class="blog-card">
-      <img :src="post.image" alt="Blog image" class="blog-img" />
-      <h2>{{ post.title }}</h2>
-      <p class="meta">By {{ post.author }} | {{ post.date }}</p>
-      <p>
-        <span v-if="expanded[idx]">{{ post.summary }}</span>
-        <span v-else>{{ post.summary.length > 120 ? post.summary.slice(0, 120) + '...' : post.summary }}</span>
-      </p>
-      <button v-if="showReadMore && post.summary.length > 120" class="readmore-btn" @click="toggle(idx)">
-        {{ expanded[idx] ? 'Read Less' : 'Read More' }}
-      </button>
-  <router-link v-if="showFullPost" :to="fullPostLink(post)">Full Post</router-link>
+      <div class="blog-card-image">
+        <img :src="post.image" :alt="post.title" class="blog-img" loading="lazy" />
+        <div class="card-overlay"></div>
+      </div>
+      <div class="blog-card-content">
+        <div class="blog-meta">
+          <span class="author">
+            <i class="fas fa-user"></i> {{ post.author }}
+          </span>
+          <span class="date">
+            <i class="fas fa-calendar"></i> {{ formatDate(post.date) }}
+          </span>
+          <span class="likes" v-if="post.likes !== undefined">
+            <i class="fas fa-heart"></i> {{ post.likes }}
+          </span>
+        </div>
+        <h2 class="blog-title">{{ post.title }}</h2>
+        <p class="blog-excerpt">
+          <span v-if="expanded[idx]">{{ post.content }}</span>
+          <span v-else>{{ post.content?.slice(0, 200) }}{{ post.content?.length > 200 ? '...' : '' }}</span>
+        </p>
+        <div class="blog-actions">
+          <button 
+            v-if="showReadMore && post.content?.length > 200" 
+            class="btn btn-text" 
+            @click="toggle(idx)"
+          >
+            {{ expanded[idx] ? 'Show Less' : 'Read More' }}
+            <i :class="expanded[idx] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+          </button>
+          <router-link 
+            v-if="showFullPost" 
+            :to="fullPostLink(post)" 
+            class="btn btn-primary"
+          >
+            Read Post
+            <i class="fas fa-arrow-right"></i>
+          </router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
+
 const props = defineProps({
   posts: {
     type: Array,
@@ -37,18 +67,39 @@ const props = defineProps({
   }
 })
 
+// Format date to a readable string
+function formatDate(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
+
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric'
+  }
+  return date.toLocaleDateString('en-US', options)
+}
+
+// Generate full post link
 function fullPostLink(post) {
   if (typeof props.fullPostRoute === 'function') {
     return props.fullPostRoute(post)
   } else if (typeof props.fullPostRoute === 'string') {
     return props.fullPostRoute
   }
-  return `/blog/${post.id}`
+  return { name: 'BlogPost', params: { id: post.id } }
 }
+
+// Track expanded state for each post
 const expanded = ref([])
-watch(() => props.posts, (val) => {
-  expanded.value = Array(val.length).fill(false)
+
+// Reset expanded state when posts change
+watch(() => props.posts, (newPosts) => {
+  expanded.value = Array(newPosts.length).fill(false)
 }, { immediate: true })
+
+// Toggle post excerpt expansion
 function toggle(idx) {
   expanded.value[idx] = !expanded.value[idx]
 }
@@ -56,56 +107,60 @@ function toggle(idx) {
 
 <style scoped>
 .blog-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-xl);
+  margin: 0 auto;
+  max-width: 1400px;
 }
+
 .blog-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  padding: 0;
-  width: 320px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-light);
+  height: 100%;
+}
+
+.blog-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.blog-card-image {
+  position: relative;
+  height: 240px;
   overflow: hidden;
 }
+
 .blog-img {
   width: 100%;
-  height: 180px;
+  height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform var(--transition-normal);
 }
-.blog-card h2 {
-  margin: 1rem 1rem 0.5rem 1rem;
+
+.blog-card:hover .blog-img {
+  transform: scale(1.05);
 }
-.blog-card .meta {
-  font-size: 0.9rem;
-  color: #888;
-  margin: 0 1rem 0.5rem 1rem;
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, 
+    transparent 0%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-normal);
 }
-.blog-card p {
-  margin: 0 1rem 1rem 1rem;
+
+.blog-card:hover .card-overlay {
+  opacity: 1;
 }
-.blog-card a {
-  color: #42b983;
-  text-decoration: underline;
-  font-weight: bold;
-  margin: 0 1rem 1rem 1rem;
-}
-.readmore-btn {
-  background: none;
-  border: none;
-  color: #42b983;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 1rem;
-  margin-bottom: 0.5rem;
-  padding: 0;
-}
-.readmore-btn:hover {
-  text-decoration: underline;
-}
+
 </style>

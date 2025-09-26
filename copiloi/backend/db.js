@@ -7,13 +7,17 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
+    content TEXT NOT NULL,
     author TEXT NOT NULL,
     date TEXT NOT NULL,
-    summary TEXT NOT NULL,
+    summary TEXT,
     image TEXT,
     likes INTEGER DEFAULT 0,
     views INTEGER DEFAULT 0
   )`);
+
+  // Add content column if it doesn't exist
+  db.run('ALTER TABLE posts ADD COLUMN content TEXT', err => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,6 +43,53 @@ db.run('ALTER TABLE posts ADD COLUMN views INTEGER DEFAULT 0', err => {});
 db.run('ALTER TABLE subscriptions ADD COLUMN gender TEXT', err => {});
 db.run('ALTER TABLE subscriptions ADD COLUMN age INTEGER', err => {});
 db.run('ALTER TABLE subscriptions ADD COLUMN country TEXT', err => {});
+
+  // Add sample blog posts if none exist
+  db.get('SELECT COUNT(*) as count FROM posts', [], (err, row) => {
+    if (err) {
+      console.error('Error checking posts:', err);
+      return;
+    }
+    
+    if (row.count === 0) {
+      const samplePosts = [
+        {
+          title: 'Welcome to Lidugog',
+          content: 'Welcome to our community! Here at Lidugog, we are committed to sharing stories, insights, and updates that matter to our community. Join us on this journey as we explore local events, share important announcements, and celebrate our vibrant culture.',
+          author: 'Lidugog Admin',
+          date: new Date().toISOString(),
+          summary: 'Welcome to our community blog where we share stories and updates that matter.',
+          image: '/uploads/lidugog_banner.png'
+        },
+        {
+          title: 'Community Updates: What\'s New in Lidugog',
+          content: 'Exciting developments are happening in our community! From infrastructure improvements to new community programs, learn about all the latest updates and how you can get involved in shaping the future of Lidugog.',
+          author: 'Community Team',
+          date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          summary: 'Stay up to date with the latest developments in our community.',
+          image: '/uploads/blog1.jpg'
+        },
+        {
+          title: 'Celebrating Our Heritage',
+          content: 'Discover the rich cultural heritage of Lidugog through our traditional celebrations, local customs, and historical landmarks. Learn about the events that shaped our community and the traditions that keep our culture alive.',
+          author: 'Cultural Committee',
+          date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+          summary: 'Exploring the rich cultural heritage and traditions of Lidugog.',
+          image: '/uploads/blog2.jpg'
+        }
+      ];
+
+      samplePosts.forEach(post => {
+        db.run(
+          'INSERT INTO posts (title, content, author, date, summary, image) VALUES (?, ?, ?, ?, ?, ?)',
+          [post.title, post.content, post.author, post.date, post.summary, post.image],
+          err => {
+            if (err) console.error('Error inserting sample post:', err);
+          }
+        );
+      });
+    }
+  });
 
   db.run(`CREATE TABLE IF NOT EXISTS contacts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
