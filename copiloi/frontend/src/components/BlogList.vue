@@ -17,7 +17,12 @@
             <i class="fas fa-heart"></i> {{ post.likes }}
           </span>
         </div>
-        <h2 class="blog-title">{{ post.title }}</h2>
+        <router-link 
+          :to="fullPostLink(post)" 
+          class="blog-title-link"
+        >
+          <h2 class="blog-title">{{ post.title }}</h2>
+        </router-link>
         <p class="blog-excerpt">
           <span v-if="expanded[idx]">{{ post.content }}</span>
           <span v-else>{{ post.content?.slice(0, 200) }}{{ post.content?.length > 200 ? '...' : '' }}</span>
@@ -161,6 +166,53 @@ function toggle(idx) {
 
 .blog-card:hover .card-overlay {
   opacity: 1;
+}
+
+.blog-card-content {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.blog-meta {
+  display: flex;
+  gap: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-md);
+}
+
+.blog-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+  line-height: 1.4;
+}
+
+.blog-excerpt {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
+}
+
+.blog-title-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform var(--transition-normal);
+}
+
+.blog-title-link:hover {
+  transform: translateX(4px);
+}
+
+.blog-title-link:hover .blog-title {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 </style>
