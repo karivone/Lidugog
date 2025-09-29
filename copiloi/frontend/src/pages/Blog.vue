@@ -1,78 +1,252 @@
 <template>
   <div class="blog-page">
     <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="main-title">Stories & Insights</h1>
-          <div class="title-divider"></div>
-          <p class="hero-description">
-            Explore our collection of thoughtful insights, personal experiences, and stories 
-            about faith, growth, and meaningful connections.
-          </p>
+    <section class="blog-hero">
+      <div class="hero-background">
+        <div class="hero-pattern"></div>
+      </div>
+      <div class="hero-content">
+        <span class="category-badge">Blog</span>
+        <h1 class="hero-title">Stories & Insights</h1>
+        <p class="hero-subtitle">
+          Explore our collection of thoughtful insights, personal experiences, and stories 
+          about faith, growth, and meaningful connections.
+        </p>
+        
+        <!-- Search & Filter Bar -->
+        <div class="search-filter-bar">
+          <div class="search-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Search articles..."
+              class="search-input"
+            >
+            <button v-if="searchQuery" @click="searchQuery = ''" class="clear-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
           
-          <!-- Search Box -->
-          <div class="search-container">
-            <div class="search-box">
-              <i class="fas fa-search search-icon"></i>
-              <input 
-                type="text" 
-                v-model="searchQuery" 
-                placeholder="Search articles..."
-                class="search-input"
-              >
-            </div>
+          <div class="filter-tags">
+            <button 
+              :class="['filter-tag', { active: selectedCategory === 'all' }]"
+              @click="selectedCategory = 'all'"
+            >
+              All Posts
+            </button>
+            <button 
+              :class="['filter-tag', { active: selectedCategory === 'faith' }]"
+              @click="selectedCategory = 'faith'"
+            >
+              Faith
+            </button>
+            <button 
+              :class="['filter-tag', { active: selectedCategory === 'life' }]"
+              @click="selectedCategory = 'life'"
+            >
+              Life
+            </button>
+            <button 
+              :class="['filter-tag', { active: selectedCategory === 'growth' }]"
+              @click="selectedCategory = 'growth'"
+            >
+              Growth
+            </button>
           </div>
         </div>
       </div>
-      <div class="hero-background"></div>
     </section>
 
-    <!-- Blog Posts Section -->
-    <section class="blog-posts-section">
+    <!-- Blog Content Section -->
+    <section class="blog-content">
       <div class="container">
         <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Discovering stories for you...</p>
+          <div class="loading-animation">
+            <div class="loading-spinner"></div>
+            <div class="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <p class="loading-text">Discovering stories for you...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="error-state">
           <div class="error-icon">
-            <i class="fas fa-exclamation-circle"></i>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
           </div>
           <h3>{{ error }}</h3>
-          <p>We're having trouble loading the posts</p>
+          <p>We're having trouble loading the posts. Please try again.</p>
           <button @click="loadPosts" class="retry-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
             <span>Try Again</span>
-            <i class="fas fa-redo"></i>
           </button>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="!allPosts.length" class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-feather-alt"></i>
+          <div class="empty-illustration">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10,9 9,9 8,9"/>
+            </svg>
           </div>
-          <h3>Stories Coming Soon</h3>
+          <h3>No Stories Yet</h3>
           <p>We're crafting meaningful content for you. Check back soon!</p>
+          <router-link to="/subscribe" class="subscribe-cta">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Subscribe for Updates
+          </router-link>
         </div>
 
         <!-- Posts Grid -->
-        <div v-else class="posts-container">
-          <div class="section-header" v-if="filteredPosts.length">
-            <h2 v-if="searchQuery">Search Results</h2>
-            <h2 v-else>Latest Stories</h2>
-            <div class="divider"></div>
+        <div v-else class="posts-section">
+          <!-- Results Header -->
+          <div class="results-header">
+            <div class="results-info">
+              <h2 v-if="searchQuery">Search Results</h2>
+              <h2 v-else-if="selectedCategory !== 'all'">{{ selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) }} Posts</h2>
+              <h2 v-else>Latest Stories</h2>
+              <span class="results-count">{{ filteredPosts.length }} article{{ filteredPosts.length !== 1 ? 's' : '' }}</span>
+            </div>
+            
+            <div class="sort-dropdown">
+              <select v-model="sortBy" class="sort-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="popular">Most Popular</option>
+              </select>
+            </div>
           </div>
-          
-          <div class="posts-grid">
-            <BlogList 
-              :posts="filteredPosts" 
-              :showReadMore="false" 
-              :showFullPost="true" 
-            />
+
+          <!-- No Results -->
+          <div v-if="filteredPosts.length === 0" class="no-results">
+            <div class="no-results-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
+            <h3>No posts found</h3>
+            <p>Try adjusting your search or filter to find what you're looking for.</p>
+            <button @click="clearFilters" class="clear-filters-btn">Clear Filters</button>
+          </div>
+
+          <!-- Blog Cards Grid -->
+          <div v-else class="blog-grid">
+            <article 
+              v-for="(post, index) in sortedPosts" 
+              :key="post.id" 
+              class="blog-card"
+              :style="{ animationDelay: `${index * 0.1}s` }"
+            >
+              <router-link :to="`/blog/${post.id}`" class="card-link">
+                <div class="card-image">
+                  <img :src="post.image" :alt="post.title" />
+                  <div class="card-overlay">
+                    <span class="read-more">Read Article</span>
+                  </div>
+                </div>
+                
+                <div class="card-content">
+                  <div class="card-meta">
+                    <span class="card-date">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      {{ formatDate(post.date || post.created_at) }}
+                    </span>
+                    <span class="card-author">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      {{ post.author }}
+                    </span>
+                  </div>
+                  
+                  <h3 class="card-title">{{ post.title }}</h3>
+                  
+                  <p class="card-excerpt">{{ getExcerpt(post.content) }}</p>
+                  
+                  <div class="card-footer">
+                    <span class="read-time">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                      </svg>
+                      {{ calculateReadTime(post.content) }} min read
+                    </span>
+                    <span class="card-likes">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                      </svg>
+                      {{ post.likes || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </router-link>
+            </article>
+          </div>
+
+          <!-- Pagination (if needed) -->
+          <div v-if="totalPages > 1" class="pagination">
+            <button 
+              @click="currentPage--" 
+              :disabled="currentPage === 1"
+              class="page-btn"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15,18 9,12 15,6"/>
+              </svg>
+            </button>
+            
+            <div class="page-numbers">
+              <button 
+                v-for="page in visiblePages" 
+                :key="page"
+                @click="currentPage = page"
+                :class="['page-number', { active: currentPage === page }]"
+              >
+                {{ page }}
+              </button>
+            </div>
+            
+            <button 
+              @click="currentPage++" 
+              :disabled="currentPage === totalPages"
+              class="page-btn"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9,18 15,12 9,6"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -81,8 +255,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import BlogList from '../components/BlogList.vue'
+import { ref, computed, onMounted } from 'vue'
 import blog1 from '../assets/blog1.png'
 import blog2 from '../assets/blog2.jpg'
 import blog3 from '../assets/blog3.jpg'
@@ -91,18 +264,95 @@ const allPosts = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const searchQuery = ref('')
+const selectedCategory = ref('all')
+const sortBy = ref('newest')
+const currentPage = ref(1)
+const postsPerPage = 9
 
 // Computed property for filtered posts
 const filteredPosts = computed(() => {
-  if (!searchQuery.value) return allPosts.value
-  
-  const query = searchQuery.value.toLowerCase()
-  return allPosts.value.filter(post => 
-    post.title?.toLowerCase().includes(query) ||
-    post.content?.toLowerCase().includes(query) ||
-    post.author?.toLowerCase().includes(query)
-  )
+  let posts = allPosts.value
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    posts = posts.filter(post => 
+      post.title?.toLowerCase().includes(query) ||
+      post.content?.toLowerCase().includes(query) ||
+      post.author?.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by category (you'd need to add category field to posts)
+  if (selectedCategory.value !== 'all') {
+    posts = posts.filter(post => post.category === selectedCategory.value)
+  }
+
+  return posts
 })
+
+// Computed property for sorted posts
+const sortedPosts = computed(() => {
+  const posts = [...filteredPosts.value]
+  
+  switch (sortBy.value) {
+    case 'newest':
+      return posts.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at))
+    case 'oldest':
+      return posts.sort((a, b) => new Date(a.date || a.created_at) - new Date(b.date || b.created_at))
+    case 'popular':
+      return posts.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+    default:
+      return posts
+  }
+})
+
+// Pagination computed properties
+const totalPages = computed(() => Math.ceil(filteredPosts.value.length / postsPerPage))
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(totalPages.value, currentPage.value + 2)
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// Helper functions
+function formatDate(dateStr) {
+  if (!dateStr) return 'Recently'
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function getExcerpt(content, maxLength = 150) {
+  if (!content) return 'Click to read more...'
+  const text = content.replace(/<[^>]*>/g, '').trim()
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
+}
+
+function calculateReadTime(content) {
+  if (!content) return 1
+  const words = content.trim().split(/\s+/).length
+  return Math.max(1, Math.ceil(words / 200))
+}
+
+function clearFilters() {
+  searchQuery.value = ''
+  selectedCategory.value = 'all'
+  sortBy.value = 'newest'
+}
 
 // Function to load posts
 async function loadPosts() {
@@ -110,77 +360,29 @@ async function loadPosts() {
   error.value = null
   
   try {
-    // Try to connect to the backend
-    let data;
-    try {
-      const res = await fetch('http://localhost:4000/api/posts', {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!res.ok) {
-        if (res.status === 404) {
-          throw new Error('Blog posts endpoint not found. Please check the server configuration.');
-        }
-        throw new Error(`Server error: ${res.statusText || 'Unknown error'}`);
-      }
-
-      data = await res.json();
-    } catch (err) {
-      console.error('Network error:', err);
-      throw new Error('Could not connect to server. Please make sure the backend is running.');
-    }
-
-    if (!Array.isArray(data)) {
-      console.error('Invalid data format:', data);
-      throw new Error('Invalid response from server');
-    }
-
-    if (!Array.isArray(data)) {
-      throw new Error('Invalid data format received from server')
-    }
-
-    if (data.length === 0) {
-      console.log('No posts found in database')
-      // Use fallback data for development
-      data = [
-        {
-          id: 1,
-          title: 'Welcome to Lidugog',
-          content: 'Welcome to our community! More content coming soon...',
-          author: 'Lidugog Admin',
-          date: new Date().toISOString(),
-          image: blog1
-        },
-        {
-          id: 2,
-          title: 'Community Updates',
-          content: 'Stay tuned for the latest updates from our community...',
-          author: 'Community Team',
-          date: new Date(Date.now() - 86400000).toISOString(),
-          image: blog2
-        }
-      ]
-    }
-
-    console.log('Successfully fetched posts:', data)
-
-    // Sort posts by date (newest first)
-    const sortedPosts = [...data].sort((a, b) => {
-      const dateA = new Date(b.date || b.created_at || 0)
-      const dateB = new Date(a.date || a.created_at || 0)
-      return dateA - dateB
+    const res = await fetch('http://localhost:4000/api/posts', {
+      headers: { 'Accept': 'application/json' }
     })
 
+    if (!res.ok) {
+      throw new Error('Failed to load posts')
+    }
+
+    const data = await res.json()
+
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response from server')
+    }
+
     // Process and format posts
-    allPosts.value = sortedPosts.map((post, idx) => ({
+    allPosts.value = data.map((post, idx) => ({
       id: post.id,
       title: post.title,
       content: post.content,
       date: post.date || post.created_at,
       author: post.author || 'Lidugog Blog',
       likes: post.likes || 0,
+      category: post.category || 'life',
       image: post.image || (idx % 3 === 0 ? blog1 : idx % 3 === 1 ? blog2 : blog3)
     }))
   } catch (e) {
@@ -197,375 +399,566 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Page Layout */
 .blog-page {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: #fafbfc;
 }
 
-.hero-section {
+/* Hero Section */
+.blog-hero {
   position: relative;
-  padding: var(--space-3xl) 0;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  color: var(--text-light);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5rem 2rem 8rem;
   overflow: hidden;
 }
 
 .hero-background {
   position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 20% 150%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%),
-    radial-gradient(circle at 80% -50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%);
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
 }
 
-.container {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 var(--space-lg);
-  position: relative;
-  z-index: 1;
+.hero-pattern {
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0);
+  background-size: 40px 40px;
 }
 
 .hero-content {
-  max-width: 800px;
+  position: relative;
+  max-width: 900px;
   margin: 0 auto;
   text-align: center;
 }
 
-.welcome-tag {
+.category-badge {
   display: inline-block;
-  padding: var(--space-sm) var(--space-lg);
-  background: rgba(255,255,255,0.1);
-  border-radius: var(--radius-full);
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50px;
   font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: var(--space-lg);
-  backdrop-filter: blur(8px);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
 }
 
-.hero-content h1 {
+.hero-title {
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: var(--space-lg);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
 }
 
-.hero-description {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
+.hero-subtitle {
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
   line-height: 1.6;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto var(--space-2xl);
+  opacity: 0.95;
+  max-width: 700px;
+  margin: 0 auto 3rem;
 }
 
-.search-container {
-  max-width: 600px;
+/* Search & Filter Bar */
+.search-filter-bar {
+  max-width: 800px;
   margin: 0 auto;
-  padding: var(--space-sm);
-  background: rgba(255,255,255,0.1);
-  border-radius: var(--radius-2xl);
-  backdrop-filter: blur(8px);
 }
 
 .search-box {
   position: relative;
-  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
-.search-icon {
+.search-box svg:first-child {
   position: absolute;
-  left: var(--space-lg);
+  left: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-secondary);
-  font-size: 1.125rem;
+  color: #888;
+  pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: var(--space-lg) var(--space-lg) var(--space-lg) var(--space-3xl);
-  border: 2px solid transparent;
-  border-radius: var(--radius-xl);
-  background: var(--bg-primary);
+  padding: 1rem 3.5rem 1rem 3rem;
+  border: none;
+  border-radius: 50px;
   font-size: 1rem;
-  color: var(--text-primary);
-  transition: all var(--transition-normal);
+  background: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
 }
 
-.blog-posts-section {
+.clear-btn {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #e0e0e0;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-tag {
+  padding: 0.5rem 1.25rem;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid transparent;
+  border-radius: 50px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.filter-tag:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.filter-tag.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+/* Blog Content Section */
+.blog-content {
+  margin-top: -5rem;
   position: relative;
-  padding: var(--space-3xl) 0;
-  margin-top: -4rem;
-  background: var(--bg-primary);
-  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  box-shadow: var(--shadow-lg);
+  z-index: 2;
 }
 
-.section-header {
-  text-align: center;
-  margin-bottom: var(--space-2xl);
-}
-
-.section-header h2 {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: var(--space-md);
-}
-
-.divider {
-  width: 60px;
-  height: 4px;
-  background: var(--gradient-primary);
+.container {
+  max-width: 1200px;
   margin: 0 auto;
-  border-radius: var(--radius-full);
-}
-
-.posts-grid {
-  margin-top: var(--space-2xl);
-}
-
-.posts-container {
-  opacity: 0;
-  animation: fadeIn 0.6s ease forwards;
-  margin-top: var(--space-3xl);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* States */
-.loading-state,
-.error-state,
-.empty-state {
-  text-align: center;
-  padding: var(--space-3xl);
-  margin: var(--space-2xl) auto;
-  max-width: 600px;
-  animation: fadeIn 0.6s ease;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-xl);
+  padding: 0 2rem;
 }
 
 /* Loading State */
+.loading-state {
+  background: white;
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.loading-animation {
+  margin-bottom: 2rem;
+}
+
 .loading-spinner {
   width: 64px;
   height: 64px;
-  border: 4px solid var(--border-color);
-  border-top-color: var(--primary-color);
+  border: 4px solid #f0f0f0;
+  border-top-color: #667eea;
   border-radius: 50%;
-  margin: 0 auto var(--space-xl);
-  animation: spin 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.loading-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
 }
 
-.loading-state p {
-  color: var(--text-secondary);
-  font-size: 1.25rem;
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+.loading-text {
+  color: #666;
+  font-size: 1.1rem;
   font-weight: 500;
 }
 
 /* Error State */
 .error-state {
-  background: linear-gradient(135deg, var(--bg-error) 0%, var(--bg-secondary) 100%);
-  border: none;
+  background: white;
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .error-icon {
   width: 80px;
   height: 80px;
-  margin: 0 auto var(--space-xl);
+  margin: 0 auto 1.5rem;
   background: rgba(239, 68, 68, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.error-icon i {
-  font-size: 2rem;
   color: #ef4444;
 }
 
 .error-state h3 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xl);
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
 .error-state p {
-  color: var(--text-secondary);
-  font-size: 1.125rem;
-  margin-bottom: var(--space-xl);
+  color: #666;
+  margin-bottom: 2rem;
 }
 
 .retry-btn {
-  padding: var(--space-md) var(--space-xl);
-  background: var(--gradient-primary);
-  color: var(--text-light);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: 50px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-normal);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-md);
+  transition: all 0.3s ease;
 }
 
 .retry-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.retry-btn i {
-  transition: transform var(--transition-normal);
-}
-
-.retry-btn:hover i {
-  transform: rotate(180deg);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 /* Empty State */
 .empty-state {
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  background: white;
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--space-xl);
-  background: var(--gradient-primary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-icon i {
-  font-size: 2rem;
-  color: var(--text-light);
+.empty-illustration {
+  color: #667eea;
+  margin-bottom: 2rem;
 }
 
 .empty-state h3 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xl);
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  color: var(--text-secondary);
-  font-size: 1.125rem;
-  max-width: 400px;
-  margin: 0 auto;
+  color: #666;
+  margin-bottom: 2rem;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .container {
-    max-width: 900px;
-  }
+.subscribe-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-@media (max-width: 1024px) {
-  .blog-posts-section {
-    margin-top: -2rem;
-  }
-
-  .container {
-    max-width: 800px;
-  }
+.subscribe-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
-@media (max-width: 768px) {
-  .hero-section {
-    padding: var(--space-2xl) 0;
-  }
-
-  .hero-content h1 {
-    font-size: clamp(2rem, 4vw, 2.5rem);
-  }
-  
-  .hero-description {
-    font-size: 1rem;
-    padding: 0 var(--space-md);
-  }
-  
-  .blog-posts-section {
-    padding: var(--space-xl) 0;
-    margin-top: -1rem;
-  }
-
-  .search-container {
-    margin: 0 var(--space-md);
-  }
-  
-  .search-input {
-    padding: var(--space-md) var(--space-lg) var(--space-md) var(--space-3xl);
-  }
-
-  .loading-state,
-  .error-state,
-  .empty-state {
-    padding: var(--space-2xl);
-    margin: var(--space-xl) var(--space-md);
-  }
+/* Posts Section */
+.posts-section {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-@media (max-width: 480px) {
-  .hero-section {
-    padding: var(--space-xl) 0;
-  }
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
 
-  .welcome-tag {
-    font-size: 0.75rem;
-    padding: var(--space-xs) var(--space-md);
-  }
+.results-info h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
 
-  .hero-content h1 {
-    font-size: clamp(1.75rem, 3vw, 2rem);
-  }
+.results-count {
+  color: #888;
+  font-size: 0.9rem;
+}
 
-  .hero-description {
-    font-size: 0.875rem;
-  }
+.sort-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-  .search-container {
-    margin: 0;
-  }
+.sort-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
 
-  .search-input {
-    padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-2xl);
-    font-size: 0.875rem;
-  }
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 3rem 2rem;
+}
 
-  .search-icon {
-    left: var(--space-md);
-    font-size: 1rem;
+.no-results-icon {
+  color: #ccc;
+  margin-bottom: 1.5rem;
+}
+
+.no-results h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.no-results p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.clear-filters-btn {
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-filters-btn:hover {
+  background: #5a67d8;
+}
+
+/* Blog Grid */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.blog-card {
+  background: #fafbfc;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e1e8ed;
+  transition: all 0.3s ease;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+  border-color: #667eea;
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.blog-card:hover .card-image img {
+  transform: scale(1.1);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-weight: 600;
+}
+.blog-card:hover .card-overlay {
+  opacity: 1;
+}
+.read-more {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+.card-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.card-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+.card-meta svg {
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  flex-grow: 1;
+}
+.card-excerpt {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #888;
+}
+.card-footer svg {
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+.page-btn {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.page-btn:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+.page-number {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.page-number.active {
+  background: #667eea;
+  color: white;
+}
+.page-number:hover:not(.active) {
+  background: #e0e0e0;
+}
+/* Animations */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0;
+    transform: translateY(20px); 
   }
 }
 </style>

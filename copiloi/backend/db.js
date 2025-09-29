@@ -19,6 +19,46 @@ db.serialize(() => {
   // Add content column if it doesn't exist
   db.run('ALTER TABLE posts ADD COLUMN content TEXT', err => {});
 
+  // Check if we have any posts, if not add some initial ones
+  db.get('SELECT COUNT(*) as count FROM posts', [], (err, row) => {
+    if (err) {
+      console.error('Error checking posts:', err);
+      return;
+    }
+    
+    if (row.count === 0) {
+      // Add some initial blog posts
+      const initialPosts = [
+        {
+          title: 'Welcome to Lidugog',
+          content: 'Welcome to our community! We are excited to share our journey of faith, growth, and meaningful connections with you. Here you will find inspiring stories, thoughtful insights, and uplifting content that celebrates our shared values and experiences.',
+          author: 'Lidugog Admin',
+          date: new Date().toISOString(),
+          summary: 'Welcome to our community! More content coming soon...',
+          image: '/uploads/blog1.jpg'
+        },
+        {
+          title: 'Community Updates',
+          content: 'Stay tuned for the latest updates from our community. We are working hard to bring you engaging content, meaningful discussions, and opportunities for connection. Our mission is to create a space where faith and fellowship thrive.',
+          author: 'Community Team',
+          date: new Date(Date.now() - 86400000).toISOString(),
+          summary: 'Stay tuned for the latest updates from our community...',
+          image: '/uploads/blog2.jpg'
+        }
+      ];
+
+      initialPosts.forEach(post => {
+        db.run(
+          'INSERT INTO posts (title, content, author, date, summary, image) VALUES (?, ?, ?, ?, ?, ?)',
+          [post.title, post.content, post.author, post.date, post.summary, post.image],
+          err => {
+            if (err) console.error('Error inserting initial post:', err);
+          }
+        );
+      });
+    }
+  });
+
   db.run(`CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,

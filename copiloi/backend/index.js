@@ -7,12 +7,21 @@ const fs = require('fs');
 const multer = require('multer');
 const db = require('./db');
 const bcrypt = require('bcryptjs');
+const port = 4000; // Define server port
 const bodyParser = require('body-parser');
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.json());
+
+// API endpoint to get all blog posts
+app.get('/api/posts', (req, res) => {
+  db.all('SELECT * FROM posts ORDER BY date DESC', [], (err, posts) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(posts);
+  });
+});
 
 // Serve manage blogs page at /manage-blogs
 app.get('/manage-blogs', (req, res) => {
@@ -766,4 +775,8 @@ app.get('/messages', (req, res) => {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Backend API running on http://localhost:${PORT}`);
+});
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
