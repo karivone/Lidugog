@@ -558,12 +558,26 @@ onMounted(() => {
   margin-top: -5rem;
   position: relative;
   z-index: 2;
+  width: 100%;
 }
 
 .container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 95%;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 90%;
+  }
 }
 
 /* Loading State */
@@ -794,8 +808,9 @@ onMounted(() => {
 /* Blog Grid */
 .blog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  width: 100%;
 }
 
 .blog-card {
