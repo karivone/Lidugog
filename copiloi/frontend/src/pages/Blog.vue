@@ -269,6 +269,65 @@ const sortBy = ref('newest')
 const currentPage = ref(1)
 const postsPerPage = 9
 
+// Fetch and process posts from the backend
+async function loadPosts() {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    const response = await fetch('http://localhost:4000/api/posts', {
+      headers: { 'Accept': 'application/json' }
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch posts')
+    }
+
+    const data = await response.json()
+
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response from server')
+    }
+
+    // Process and format posts
+    allPosts.value = data.map((post, idx) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      date: post.date || post.created_at,
+      author: post.author || 'Lidugog Blog',
+      likes: post.likes || 0,
+      category: post.category || 'life',
+      image: post.image || (idx % 3 === 0 ? blog1 : idx % 3 === 1 ? blog2 : blog3)
+    }))
+  } catch (err) {
+    console.error('Error loading posts:', err)
+    error.value = 'Failed to load blog posts'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Load posts when component mounts
+onMounted(() => {
+  loadPosts()
+})
+
+// Reset filters
+function clearFilters() {
+  searchQuery.value = ''
+  selectedCategory.value = 'all'
+  sortBy.value = 'newest'
+}
+
+// Calculate read time helper
+function calculateReadTime(content) {
+  if (!content) return 1
+  const wordsPerMinute = 200
+  const words = content.trim().split(/\s+/).length
+  return Math.max(1, Math.ceil(words / wordsPerMinute))
+}
+
 // Computed property for filtered posts
 const filteredPosts = computed(() => {
   let posts = allPosts.value
@@ -342,60 +401,8 @@ function getExcerpt(content, maxLength = 150) {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
 }
 
-function calculateReadTime(content) {
-  if (!content) return 1
-  const words = content.trim().split(/\s+/).length
-  return Math.max(1, Math.ceil(words / 200))
-}
+// End of script
 
-function clearFilters() {
-  searchQuery.value = ''
-  selectedCategory.value = 'all'
-  sortBy.value = 'newest'
-}
-
-// Function to load posts
-async function loadPosts() {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    const res = await fetch('http://localhost:4000/api/posts', {
-      headers: { 'Accept': 'application/json' }
-    })
-
-    if (!res.ok) {
-      throw new Error('Failed to load posts')
-    }
-
-    const data = await res.json()
-
-    if (!Array.isArray(data)) {
-      throw new Error('Invalid response from server')
-    }
-
-    // Process and format posts
-    allPosts.value = data.map((post, idx) => ({
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      date: post.date || post.created_at,
-      author: post.author || 'Lidugog Blog',
-      likes: post.likes || 0,
-      category: post.category || 'life',
-      image: post.image || (idx % 3 === 0 ? blog1 : idx % 3 === 1 ? blog2 : blog3)
-    }))
-  } catch (e) {
-    console.error('Error loading posts:', e)
-    error.value = 'Failed to load blog posts'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  loadPosts()
-})
 </script>
 
 <style scoped>
@@ -893,6 +900,7 @@ onMounted(() => {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -904,6 +912,7 @@ onMounted(() => {
   margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

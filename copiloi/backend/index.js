@@ -21,9 +21,18 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Frontend dev server
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Accept'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files
+app.use(express.static(path.join(__dirname)));
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // ==========================================
 // FILE UPLOAD CONFIGURATION
@@ -86,6 +95,154 @@ function logVisit(pathName) {
 }
 
 // ==========================================
+// SUBSCRIBER STATS ROUTES
+// ==========================================
+
+// Get subscriber statistics
+app.get('/api/subscribers/stats', async (req, res) => {
+  try {
+    const stats = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as total FROM subscribers', [], (err, totalRow) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        db.get('SELECT COUNT(*) as active FROM subscribers WHERE status = "active"', [], (err, activeRow) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          db.all(`
+            SELECT strftime('%Y-%m', subscribed_at) as month,
+            COUNT(*) as count
+            FROM subscribers
+            GROUP BY month
+            ORDER BY month DESC
+            LIMIT 12
+          `, [], (err, monthlyStats) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            resolve({
+              total: totalRow.total,
+              active: activeRow.active,
+              monthly: monthlyStats
+            });
+          });
+        });
+      });
+    });
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting subscriber stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get subscriber statistics'
+    });
+  }
+});
+
+// Toggle subscriber status
+app.put('/api/subscribers/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!['active', 'inactive'].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid status value'
+    });
+  }
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE subscribers SET status = ? WHERE id = ?',
+        [status, id],
+        (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        }
+      );
+    });
+
+    res.json({
+      success: true,
+      message: 'Subscriber status updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating subscriber status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update subscriber status'
+    });
+  }
+});
+
+// Get list of subscribers with pagination
+app.get('/api/subscribers', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const subscribers = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT * FROM subscribers
+        ORDER BY subscribed_at DESC
+        LIMIT ? OFFSET ?
+      `, [limit, offset], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(rows);
+      });
+    });
+
+    const total = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM subscribers', [], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(row.count);
+      });
+    });
+
+    res.json({
+      success: true,
+      data: {
+        subscribers,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          currentPage: page,
+          perPage: limit
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error getting subscribers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get subscribers'
+    });
+  }
+});
+
+// ==========================================
 // HTML PAGE ROUTES
 // ==========================================
 
@@ -94,24 +251,156 @@ app.get('/', logVisit('/'), (req, res) => {
   res.sendFile(path.join(__dirname, 'homepage.html'));
 });
 
-app.get('/create-blog', (req, res) => {
+// Fallback route for admin panel - serves homepage.html for all admin routes
+app.get('/admin*', logVisit('/admin'), (req, res) => {
+  res.sendFile(path.join(__dirname, 'homepage.html'));
+});
+
+app.get('/create-blog', logVisit('/create-blog'), (req, res) => {
   res.sendFile(path.join(__dirname, 'create-blog.html'));
+});
+
+// ==========================================
+// SUBSCRIPTION ROUTES
+// ==========================================
+
+app.post('/api/subscribe', async (req, res) => {
+  const { firstName, lastName, email } = req.body;
+
+  // Basic validation
+  if (!firstName || !lastName || !email) {
+    return res.status(400).json({ 
+      error: 'All fields are required' 
+    });
+  }
+
+  // Email format validation
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ 
+      error: 'Invalid email format' 
+    });
+  }
+
+  try {
+    // Check if email already exists
+    db.get('SELECT email FROM subscribers WHERE email = ?', [email], (err, row) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ 
+          error: 'Internal server error' 
+        });
+      }
+
+      if (row) {
+        return res.status(400).json({ 
+          error: 'This email is already subscribed' 
+        });
+      }
+
+      // Insert new subscriber
+      db.run(
+        'INSERT INTO subscribers (first_name, last_name, email) VALUES (?, ?, ?)',
+        [firstName, lastName, email],
+        function(err) {
+          if (err) {
+            console.error('Error adding subscriber:', err);
+            return res.status(500).json({ 
+              error: 'Failed to add subscriber' 
+            });
+          }
+
+          res.status(201).json({
+            message: 'Successfully subscribed! Welcome to our community.',
+            subscriberId: this.lastID
+          });
+        }
+      );
+    });
+  } catch (error) {
+    console.error('Subscription error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error' 
+    });
+  }
+});
+
+// Get all subscribers (admin only)
+app.get('/api/subscribers', (req, res) => {
+  db.all('SELECT * FROM subscribers ORDER BY subscribed_at DESC', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching subscribers:', err);
+      return res.status(500).json({ 
+        error: 'Failed to fetch subscribers' 
+      });
+    }
+    res.json(rows);
+  });
 });
 
 app.get('/manage-blogs', (req, res) => {
   res.sendFile(path.join(__dirname, 'manage-blogs.html'));
 });
 
-app.get('/messages', (req, res) => {
+app.get('/messages', logVisit('/messages'), (req, res) => {
   res.sendFile(path.join(__dirname, 'messages.html'));
 });
 
-app.get('/calendar', (req, res) => {
+app.get('/calendar', logVisit('/calendar'), (req, res) => {
   res.sendFile(path.join(__dirname, 'calendar.html'));
 });
 
-app.get('/settings', (req, res) => {
+app.get('/settings', logVisit('/settings'), (req, res) => {
   res.sendFile(path.join(__dirname, 'settings.html'));
+});
+
+// ==========================================
+// CONTACT FORM ENDPOINTS
+// ==========================================
+
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+
+  // Basic validation
+  if (!name || !email || !message) {
+    return res.status(400).json({ 
+      error: 'All fields are required' 
+    });
+  }
+
+  // Email format validation
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ 
+      error: 'Invalid email format' 
+    });
+  }
+
+  try {
+    // Store message in database
+    db.run(
+      'INSERT INTO messages (name, email, message, created_at) VALUES (?, ?, ?, ?)',
+      [name, email, message, new Date().toISOString()],
+      function(err) {
+        if (err) {
+          console.error('Error saving message:', err);
+          return res.status(500).json({ 
+            error: 'Failed to save message' 
+          });
+        }
+
+        res.status(201).json({
+          message: 'Thank you for your message! We will get back to you soon.',
+          messageId: this.lastID
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Contact form error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error' 
+    });
+  }
 });
 
 // ==========================================

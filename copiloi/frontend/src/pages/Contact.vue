@@ -275,7 +275,10 @@ async function sendContact() {
   try {
     const res = await fetch('http://localhost:4000/api/contact', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({ 
         name: `${firstName.value} ${lastName.value}`, 
         email: email.value, 
@@ -284,9 +287,12 @@ async function sendContact() {
       })
     })
     
-    const data = await res.json()
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error || 'Failed to send message. Please try again.')
+    }
     
-    if (!res.ok) throw new Error(data.error || 'Submission failed')
+    const data = await res.json()
     
     responseMsg.value = data.message || 'Thank you for reaching out! We\'ll get back to you soon.'
     isSuccess.value = true

@@ -148,6 +148,101 @@
     .main {
       flex: 1;
       margin-left: 280px;
+    }
+
+    /* Subscriber Stats */
+    .subscriber-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-card h3 {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-card .trend {
+      font-size: 0.9rem;
+      color: var(--success-color);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .subscriber-table {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .subscriber-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .subscriber-table th,
+    .subscriber-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .subscriber-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .subscriber-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .pagination button:hover,
+    .pagination button.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
       background: var(--light-bg);
       padding: 2.5rem;
       min-height: 100vh;
@@ -493,6 +588,141 @@
       }
     }
   </style>
+  <script>
+    // Load subscriber data
+    async function loadSubscriberStats() {
+      try {
+        const response = await fetch('http://localhost:4000/api/subscribers/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+          const stats = data.data;
+          
+          // Update total subscribers
+          document.getElementById('totalSubscribers').textContent = stats.total;
+          document.getElementById('activeSubscribers').textContent = stats.active;
+          
+          // Calculate this month's subscribers
+          const thisMonth = stats.monthly[0]?.count || 0;
+          document.getElementById('monthlySubscribers').textContent = thisMonth;
+          
+          // Calculate trends
+          const lastMonth = stats.monthly[1]?.count || 0;
+          const totalTrend = ((thisMonth - lastMonth) / lastMonth * 100) || 0;
+          
+          // Update trend indicators
+          document.getElementById('monthlyTrend').innerHTML = `
+            <i class="fas fa-${totalTrend >= 0 ? 'arrow-up' : 'arrow-down'}"></i>
+            ${Math.abs(totalTrend).toFixed(1)}% from last month
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading subscriber stats:', error);
+      }
+    }
+
+    // Load subscriber list
+    async function loadSubscribers(page = 1) {
+      try {
+        const response = await fetch(`http://localhost:4000/api/subscribers?page=${page}&limit=10`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const { subscribers, pagination } = data.data;
+          const tbody = document.getElementById('subscribersList');
+          tbody.innerHTML = '';
+          
+          subscribers.forEach(subscriber => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${subscriber.first_name} ${subscriber.last_name}</td>
+              <td>${subscriber.email}</td>
+              <td>
+                <span class="user-role ${subscriber.status === 'active' ? 'admin' : 'editor'}">
+                  ${subscriber.status}
+                </span>
+              </td>
+              <td>${new Date(subscriber.subscribed_at).toLocaleDateString()}</td>
+              <td class="user-actions">
+                <button class="btn btn-sm ${subscriber.status === 'active' ? 'btn-danger' : 'btn-success'}"
+                  onclick="toggleSubscriberStatus('${subscriber.id}', '${subscriber.status}')">
+                  ${subscriber.status === 'active' ? 'Deactivate' : 'Activate'}
+                </button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+          
+          // Update pagination
+          updatePagination(pagination);
+        }
+      } catch (error) {
+        console.error('Error loading subscribers:', error);
+      }
+    }
+
+    // Update pagination controls
+    function updatePagination(pagination) {
+      const container = document.getElementById('subscriberPagination');
+      container.innerHTML = '';
+      
+      // Previous button
+      if (pagination.currentPage > 1) {
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevButton.onclick = () => loadSubscribers(pagination.currentPage - 1);
+        container.appendChild(prevButton);
+      }
+      
+      // Page numbers
+      for (let i = 1; i <= pagination.pages; i++) {
+        const button = document.createElement('button');
+        button.textContent = i;
+        if (i === pagination.currentPage) {
+          button.classList.add('active');
+        }
+        button.onclick = () => loadSubscribers(i);
+        container.appendChild(button);
+      }
+      
+      // Next button
+      if (pagination.currentPage < pagination.pages) {
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextButton.onclick = () => loadSubscribers(pagination.currentPage + 1);
+        container.appendChild(nextButton);
+      }
+    }
+
+    // Toggle subscriber status
+    async function toggleSubscriberStatus(id, currentStatus) {
+      try {
+        const response = await fetch(`http://localhost:4000/api/subscribers/${id}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: currentStatus === 'active' ? 'inactive' : 'active'
+          })
+        });
+        
+        if (response.ok) {
+          // Reload subscriber data
+          loadSubscriberStats();
+          loadSubscribers();
+        }
+      } catch (error) {
+        console.error('Error updating subscriber status:', error);
+      }
+    }
+
+    // Initialize data loading
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSubscriberStats();
+      loadSubscribers();
+    });
+  </script>
 </head>
 <body>
   <nav class="sidebar">
@@ -538,6 +768,54 @@
     </div>
 
     <div class="settings-grid">
+      <div class="section">
+        <div class="section-header">
+          <i class="fa-solid fa-users"></i>
+          <div>
+            <h2>Subscriber Management</h2>
+            <p>View and manage newsletter subscribers</p>
+          </div>
+        </div>
+
+        <div class="subscriber-stats">
+          <div class="stat-card">
+            <h3>Total Subscribers</h3>
+            <div class="value" id="totalSubscribers">...</div>
+            <div class="trend" id="totalTrend">Loading...</div>
+          </div>
+          <div class="stat-card">
+            <h3>Active Subscribers</h3>
+            <div class="value" id="activeSubscribers">...</div>
+            <div class="trend" id="activeTrend">Loading...</div>
+          </div>
+          <div class="stat-card">
+            <h3>This Month</h3>
+            <div class="value" id="monthlySubscribers">...</div>
+            <div class="trend" id="monthlyTrend">Loading...</div>
+          </div>
+        </div>
+
+        <div class="subscriber-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Subscribed Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subscribersList">
+              <!-- Subscriber rows will be added here dynamically -->
+            </tbody>
+          </table>
+          <div class="pagination" id="subscriberPagination">
+            <!-- Pagination buttons will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-header">
           <i class="fa-solid fa-user-plus"></i>

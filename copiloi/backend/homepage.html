@@ -573,7 +573,7 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" href="/messages">
-          <i class="fa-solid fa-messages"></i>Messages
+          <i class="fa-solid fa-envelope"></i>Messages
         </a>
       </li>
       <li class="nav-item">
@@ -648,6 +648,21 @@
           <i class="fa-solid fa-arrow-up"></i>
           +18% from last month
         </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon success">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+        <div class="stat-number" id="totalSubscribers">0</div>
+        <div class="stat-label">Subscribers</div>
+        <div class="stat-change" id="subscribersTrend">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Loading...
+        </div>
+      </div>
       </div>
 
       <div class="stat-card">
@@ -751,6 +766,57 @@
       observer.observe(el);
     });
 
+    // Load subscriber stats
+    async function loadSubscriberStats() {
+      try {
+        const response = await fetch('/api/subscribers/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+          const stats = data.data;
+          document.getElementById('totalSubscribers').textContent = stats.total.toLocaleString();
+          
+          const thisMonth = stats.monthly[0]?.count || 0;
+          const lastMonth = stats.monthly[1]?.count || 0;
+          const trend = ((thisMonth - lastMonth) / lastMonth * 100) || 0;
+          
+          const trendEl = document.getElementById('subscribersTrend');
+          if (trendEl) {
+            trendEl.className = 'stat-change ' + (trend >= 0 ? 'positive' : 'negative');
+            trendEl.innerHTML = `<i class="fa-solid fa-arrow-${trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(trend).toFixed(1)}% from last month`;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading subscriber stats:', error);
+      }
+    }
+
+    // Call loadSubscriberStats immediately
+    loadSubscriberStats();
+
+    // Load subscriber stats
+    async function loadSubscriberStats() {
+      try {
+        const response = await fetch('/api/subscribers/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+          const stats = data.data;
+          document.getElementById('totalSubscribers').textContent = stats.total.toLocaleString();
+          
+          const thisMonth = stats.monthly[0]?.count || 0;
+          const lastMonth = stats.monthly[1]?.count || 0;
+          const trend = ((thisMonth - lastMonth) / lastMonth * 100) || 0;
+          
+          const trendEl = document.getElementById('subscribersTrend');
+          trendEl.className = 'stat-change ' + (trend >= 0 ? 'positive' : 'negative');
+          trendEl.innerHTML = `<i class="fa-solid fa-arrow-${trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(trend).toFixed(1)}% from last month`;
+        }
+      } catch (error) {
+        console.error('Error loading subscriber stats:', error);
+      }
+    }
+
     // Fetch blog stats and render chart
     fetch('/api/posts')
       .then(res => res.json())
@@ -761,7 +827,6 @@
         const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
         document.getElementById('totalLikes').textContent = totalLikes.toLocaleString();
         document.getElementById('totalViews').textContent = totalViews.toLocaleString();
-        document.getElementById('totalSubscribers').textContent = Math.floor(totalViews / 10).toLocaleString();
 
         // Recent posts
         const recent = posts.slice(0, 5);
@@ -841,7 +906,7 @@
         document.getElementById('totalBlogs').textContent = '24';
         document.getElementById('totalLikes').textContent = '1,248';
         document.getElementById('totalViews').textContent = '18,492';
-        document.getElementById('totalSubscribers').textContent = '1,849';
+        // Subscriber count is handled by loadSubscriberStats()
         
         document.getElementById('recentPosts').innerHTML = `
           <li class="post-item">
