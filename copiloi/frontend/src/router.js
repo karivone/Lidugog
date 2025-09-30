@@ -6,7 +6,7 @@ import About from './pages/About.vue'
 import Contact from './pages/Contact.vue'
 import Subscribe from './pages/Subscribe.vue'
 
-import BlogPost from './pages/BlogPost.vue'
+import BlogPost from './pages/BlogPost_Original.vue'
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/blog', name: 'Blog', component: Blog },

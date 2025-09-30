@@ -269,9 +269,11 @@ async function sendContact() {
   }
 
   isSubmitting.value = true
+  responseMsg.value = ''
+  isSuccess.value = false
   
   try {
-    const res = await fetch('/api/contact', {
+    const res = await fetch('http://localhost:4000/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -297,15 +299,16 @@ async function sendContact() {
     messageText.value = ''
     
   } catch (e) {
+    console.error('Contact form error:', e)
     responseMsg.value = e.message || 'Something went wrong. Please try again.'
     isSuccess.value = false
   } finally {
     isSubmitting.value = false
     
-    // Clear message after 5 seconds
+    // Clear message after 8 seconds
     setTimeout(() => {
       responseMsg.value = ''
-    }, 5000)
+    }, 8000)
   }
 }
 
@@ -358,10 +361,87 @@ onMounted(() => {
 
 .hero-subtitle {
   font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-  opacity: 0.9;
-  font-weight: 300;
-  max-width: 600px;
-  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Add missing closing brace above if any block was left open */
+
+.faq-slide-enter-active,
+.faq-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.faq-slide-enter-from,
+.faq-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-bottom: 0;
+}
+
+.faq-slide-enter-to,
+.faq-slide-leave-from {
+  opacity: 1;
+  max-height: 200px;
+  padding-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-decoration {
+    display: none;
+  }
+  
+  .contact-hero {
+    padding: 4rem 2rem 3rem;
+  }
+  
+  .contact-info-card,
+  .contact-form-card {
+    padding: 2rem;
+  }
+  
+  .contact-method {
+    padding: 1rem;
+  }
+  
+  .faq-question {
+    padding: 1.25rem;
+  }
+  
+  .faq-answer {
+    padding: 0 1.25rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-info-card,
+  .contact-form-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .contact-method {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .method-content {
+    text-align: center;
+    font-weight: 300;
+    max-width: 600px;
+    margin: 0 auto;
+  }
 }
 
 .hero-decoration {
@@ -882,7 +962,6 @@ onMounted(() => {
 .message-fade-leave-active {
   transition: all 0.3s ease;
 }
-
 .message-fade-enter-from,
 .message-fade-leave-to {
   opacity: 0;
