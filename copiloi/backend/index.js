@@ -359,46 +359,75 @@ app.get('/settings', logVisit('/settings'), (req, res) => {
 // ==========================================
 
 app.post('/api/contact', async (req, res) => {
-  const { name, email, message } = req.body;
+  console.log('Received contact form submission:', req.body);
+  
+  const { name, email, message, subject } = req.body;
 
   // Basic validation
   if (!name || !email || !message) {
+    console.log('Validation failed:', { name, email, message });
     return res.status(400).json({ 
+      success: false,
       error: 'All fields are required' 
     });
   }
+  
+  // Ensure messages table exists
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      subject TEXT,
+      message TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      read INTEGER DEFAULT 0
+    )
+  `);
 
   // Email format validation
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   if (!emailRegex.test(email)) {
+    console.log('Invalid email format:', email);
     return res.status(400).json({ 
+      success: false,
       error: 'Invalid email format' 
     });
   }
 
   try {
+    console.log('Attempting to save message to database');
     // Store message in database
-    db.run(
-      'INSERT INTO messages (name, email, message, created_at) VALUES (?, ?, ?, ?)',
-      [name, email, message, new Date().toISOString()],
-      function(err) {
-        if (err) {
-          console.error('Error saving message:', err);
-          return res.status(500).json({ 
-            error: 'Failed to save message' 
-          });
+    const messageId = await new Promise((resolve, reject) => {
+      const params = [name, email, subject || null, message, new Date().toISOString()];
+      console.log('Database parameters:', params);
+      
+      db.run(
+        'INSERT INTO messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, ?)',
+        params,
+        function(err) {
+          if (err) {
+            console.error('Database error details:', err);
+            reject(err);
+            return;
+          }
+          resolve(this.lastID);
         }
+      );
+    });
 
-        res.status(201).json({
-          message: 'Thank you for your message! We will get back to you soon.',
-          messageId: this.lastID
-        });
-      }
-    );
+    console.log('Message saved successfully with ID:', messageId);
+    res.status(201).json({
+      success: true,
+      message: 'Thank you for your message! We will get back to you soon.',
+      messageId
+    });
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('Detailed error information:', error);
     res.status(500).json({ 
-      error: 'Internal server error' 
+      success: false,
+      error: 'Failed to save message',
+      details: error.message
     });
   }
 });
@@ -718,6 +747,26 @@ app.post('/api/subscribe', (req, res) => {
 // ==========================================
 
 // GET all contact messages
+app.get('/api/messages', (req, res) => {
+  db.all(
+    `SELECT id, name, email, subject, message, created_at as date, read FROM messages ORDER BY created_at DESC`,
+    [],
+    (err, messages) => {
+      if (err) {
+        console.error('Error fetching messages:', err);
+        return res.status(500).json({ 
+          success: false,
+          error: 'Failed to fetch messages' 
+        });
+      }
+      
+      res.json({
+        success: true,
+        messages: messages
+      });
+    }
+  );
+});
 app.get('/api/contacts', (req, res) => {
   db.all('SELECT * FROM contacts ORDER BY date DESC LIMIT 50', [], (err, messages) => {
     if (err) {
@@ -733,25 +782,40 @@ app.post('/api/contact', (req, res) => {
   const { name, email, subject, message } = req.body;
   
   if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Name, email, and message are required' });
+    return res.status(400).json({
+      success: false,
+      error: 'Name, email, and message are required'
+    });
   }
   
   const date = new Date().toISOString();
   
-  db.run(
-    'INSERT INTO contacts (name, email, subject, message, date) VALUES (?, ?, ?, ?, ?)',
-    [name, email, subject || '', message, date],
-    function(err) {
-      if (err) {
-        console.error('Error creating contact:', err);
-        return res.status(500).json({ error: 'Failed to submit message' });
+  // Save to both contacts and messages tables
+  db.serialize(() => {
+    db.run(
+      'INSERT INTO contacts (name, email, subject, message, date) VALUES (?, ?, ?, ?, ?)',
+      [name, email, subject || '', message, date]
+    );
+
+    db.run(
+      'INSERT INTO messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, ?)',
+      [name, email, subject || '', message, date],
+      function(err) {
+        if (err) {
+          console.error('Error saving message:', err);
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to submit message'
+          });
+        }
+        res.json({ 
+          success: true,
+          message: 'Thank you for your message! We will get back to you soon.',
+          messageId: this.lastID
+        });
       }
-      res.status(201).json({ 
-        message: 'Message sent successfully! We\'ll get back to you soon.',
-        id: this.lastID 
-      });
-    }
-  );
+    );
+  });
 });
 
 // ==========================================

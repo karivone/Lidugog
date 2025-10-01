@@ -509,13 +509,14 @@
           const emptyState = document.getElementById('emptyState');
           list.innerHTML = '<li class="loading"><div class="loading-spinner"></div>Loading messages...</li>';
           try {
-            const res = await fetch('/api/contacts');
-            const messages = await res.json();
-            if (!Array.isArray(messages) || messages.length === 0) {
+            const res = await fetch('/api/messages');
+            const data = await res.json();
+            if (!data.success || !Array.isArray(data.messages) || data.messages.length === 0) {
               list.innerHTML = '';
               emptyState.style.display = '';
               return;
             }
+            const messages = data.messages;
             emptyState.style.display = 'none';
             list.innerHTML = messages.map(m => `
               <li class="message-item">

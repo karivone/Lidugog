@@ -1,12 +1,16 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // Create/connect to SQLite database
-const db = new sqlite3.Database('./blog.db', (err) => {
+const db = new sqlite3.Database('./blog.db', async (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
     console.log('Connected to SQLite database');
-    initializeDatabase();
+    await new Promise((resolve) => {
+      initializeDatabase();
+      // Give enough time for tables to be created
+      setTimeout(resolve, 2000);
+    });
   }
 });
 
@@ -55,12 +59,16 @@ function initializeDatabase() {
     )
   `, createTablesCallback('contacts'));
 
+  // Drop existing messages table if it exists
+  db.run(`DROP TABLE IF EXISTS messages`);
+  
   // Messages table
   db.run(`
     CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL,
+      subject TEXT,
       message TEXT NOT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       read INTEGER DEFAULT 0

@@ -158,14 +158,14 @@
           <!-- Blog Cards Grid -->
           <div v-else class="blog-grid">
             <article 
-              v-for="(post, index) in sortedPosts" 
+              v-for="(post, index) in paginatedPosts" 
               :key="post.id" 
               class="blog-card"
               :style="{ animationDelay: `${index * 0.1}s` }"
             >
               <router-link :to="`/blog/${post.id}`" class="card-link">
                 <div class="card-image">
-                  <img :src="post.image" :alt="post.title" />
+                  <img :src="post.image" :alt="post.title" @error="handleImageError" />
                   <div class="card-overlay">
                     <span class="read-more">Read Article</span>
                   </div>
@@ -193,7 +193,7 @@
                   
                   <h3 class="card-title">{{ post.title }}</h3>
                   
-                  <p class="card-excerpt">{{ getExcerpt(post.content) }}</p>
+                  <p class="card-excerpt">{{ getExcerpt(post.summary || post.content) }}</p>
                   
                   <div class="card-footer">
                     <span class="read-time">
@@ -201,7 +201,7 @@
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                       </svg>
-                      {{ calculateReadTime(post.content) }} min read
+                      {{ calculateReadTime(post.summary || post.content) }} min read
                     </span>
                     <span class="card-likes">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -269,65 +269,6 @@ const sortBy = ref('newest')
 const currentPage = ref(1)
 const postsPerPage = 9
 
-// Fetch and process posts from the backend
-async function loadPosts() {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    const response = await fetch('http://localhost:4000/api/posts', {
-      headers: { 'Accept': 'application/json' }
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch posts')
-    }
-
-    const data = await response.json()
-
-    if (!Array.isArray(data)) {
-      throw new Error('Invalid response from server')
-    }
-
-    // Process and format posts
-    allPosts.value = data.map((post, idx) => ({
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      date: post.date || post.created_at,
-      author: post.author || 'Lidugog Blog',
-      likes: post.likes || 0,
-      category: post.category || 'life',
-      image: post.image || (idx % 3 === 0 ? blog1 : idx % 3 === 1 ? blog2 : blog3)
-    }))
-  } catch (err) {
-    console.error('Error loading posts:', err)
-    error.value = 'Failed to load blog posts'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Load posts when component mounts
-onMounted(() => {
-  loadPosts()
-})
-
-// Reset filters
-function clearFilters() {
-  searchQuery.value = ''
-  selectedCategory.value = 'all'
-  sortBy.value = 'newest'
-}
-
-// Calculate read time helper
-function calculateReadTime(content) {
-  if (!content) return 1
-  const wordsPerMinute = 200
-  const words = content.trim().split(/\s+/).length
-  return Math.max(1, Math.ceil(words / wordsPerMinute))
-}
-
 // Computed property for filtered posts
 const filteredPosts = computed(() => {
   let posts = allPosts.value
@@ -337,12 +278,13 @@ const filteredPosts = computed(() => {
     const query = searchQuery.value.toLowerCase()
     posts = posts.filter(post => 
       post.title?.toLowerCase().includes(query) ||
+      post.summary?.toLowerCase().includes(query) ||
       post.content?.toLowerCase().includes(query) ||
       post.author?.toLowerCase().includes(query)
     )
   }
 
-  // Filter by category (you'd need to add category field to posts)
+  // Filter by category
   if (selectedCategory.value !== 'all') {
     posts = posts.filter(post => post.category === selectedCategory.value)
   }
@@ -366,8 +308,15 @@ const sortedPosts = computed(() => {
   }
 })
 
+// Computed property for paginated posts
+const paginatedPosts = computed(() => {
+  const start = (currentPage.value - 1) * postsPerPage
+  const end = start + postsPerPage
+  return sortedPosts.value.slice(start, end)
+})
+
 // Pagination computed properties
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / postsPerPage))
+const totalPages = computed(() => Math.ceil(sortedPosts.value.length / postsPerPage))
 const visiblePages = computed(() => {
   const pages = []
   const start = Math.max(1, currentPage.value - 2)
@@ -401,8 +350,128 @@ function getExcerpt(content, maxLength = 150) {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
 }
 
-// End of script
+function calculateReadTime(content) {
+  if (!content) return 1
+  const words = content.trim().split(/\s+/).length
+  return Math.max(1, Math.ceil(words / 200))
+}
 
+function clearFilters() {
+  searchQuery.value = ''
+  selectedCategory.value = 'all'
+  sortBy.value = 'newest'
+  currentPage.value = 1
+}
+
+function handleImageError(event) {
+  // Fallback to placeholder if image fails to load
+  event.target.style.display = 'none'
+  event.target.parentElement.innerHTML = '<div class="image-placeholder">No Image Available</div>'
+}
+
+// Function to load posts
+async function loadPosts() {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    console.log('Fetching posts from backend...')
+    const res = await fetch('http://localhost:4000/api/posts', {
+      headers: { 'Accept': 'application/json' }
+    })
+
+    console.log('Response status:', res.status)
+
+    if (!res.ok) {
+      throw new Error(`Server responded with status ${res.status}`)
+    }
+
+    const data = await res.json()
+    console.log('Received data:', data)
+
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response format from server')
+    }
+
+    console.log(`Successfully loaded ${data.length} posts`)
+
+    // Process and format posts with fallback images
+    allPosts.value = data.map((post, idx) => {
+      let imageUrl = post.image
+      
+      // If image is a relative path, prepend the backend URL
+      if (imageUrl && imageUrl.startsWith('/uploads/')) {
+        imageUrl = `http://localhost:4000${imageUrl}`
+      }
+      
+      // If no image, use fallback
+      if (!imageUrl) {
+        imageUrl = idx % 3 === 0 ? blog1 : idx % 3 === 1 ? blog2 : blog3
+      }
+      
+      return {
+        id: post.id,
+        title: post.title,
+        summary: post.summary,
+        content: post.content,
+        date: post.date || post.created_at,
+        author: post.author || 'Lidugog Blog',
+        likes: post.likes || 0,
+        views: post.views || 0,
+        category: post.category || 'general',
+        image: imageUrl
+      }
+    })
+
+    console.log('Posts processed successfully:', allPosts.value.length)
+  } catch (e) {
+    console.error('Error loading posts:', e)
+    
+    // More detailed error messages
+    if (e.message.includes('Failed to fetch')) {
+      error.value = 'Cannot connect to server. Please ensure the backend is running on port 4000.'
+    } else if (e.message.includes('status')) {
+      error.value = `Server error: ${e.message}`
+    } else {
+      error.value = 'Failed to load blog posts. Please check your connection.'
+    }
+    
+    // Optional: Add some demo/fallback posts for development
+    console.log('Loading fallback demo posts...')
+    allPosts.value = [
+      {
+        id: 1,
+        title: 'Welcome to Lidugog Blog',
+        summary: 'This is a demo post. Start your backend server to see real posts.',
+        content: 'This is a demo post. Start your backend server to see real posts.',
+        date: new Date().toISOString(),
+        author: 'Demo',
+        likes: 0,
+        views: 0,
+        category: 'general',
+        image: blog1
+      },
+      {
+        id: 2,
+        title: 'Start Backend Server',
+        summary: 'Run "cd backend && node index.js" to start the server and see your real blog posts.',
+        content: 'Run "cd backend && node index.js" to start the server and see your real blog posts.',
+        date: new Date().toISOString(),
+        author: 'System',
+        likes: 0,
+        views: 0,
+        category: 'general',
+        image: blog2
+      }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadPosts()
+})
 </script>
 
 <style scoped>
@@ -568,7 +637,7 @@ function getExcerpt(content, maxLength = 150) {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -803,6 +872,7 @@ function getExcerpt(content, maxLength = 150) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
+  width: 100%;
 }
 
 .blog-card {
@@ -813,6 +883,9 @@ function getExcerpt(content, maxLength = 150) {
   transition: all 0.3s ease;
   opacity: 0;
   animation: fadeInUp 0.6s ease forwards;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .blog-card:hover {
@@ -824,7 +897,9 @@ function getExcerpt(content, maxLength = 150) {
 .card-link {
   text-decoration: none;
   color: inherit;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .card-image {
@@ -832,6 +907,7 @@ function getExcerpt(content, maxLength = 150) {
   width: 100%;
   height: 220px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .card-image img {
@@ -874,6 +950,9 @@ function getExcerpt(content, maxLength = 150) {
 
 .card-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .card-meta {
@@ -900,9 +979,14 @@ function getExcerpt(content, maxLength = 150) {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.card-link:hover .card-title {
+  color: #667eea;
 }
 
 .card-excerpt {
@@ -912,9 +996,9 @@ function getExcerpt(content, maxLength = 150) {
   margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-grow: 1;
 }
 
 .card-footer {
@@ -923,6 +1007,7 @@ function getExcerpt(content, maxLength = 150) {
   justify-content: space-between;
   padding-top: 1rem;
   border-top: 1px solid #e0e0e0;
+  margin-top: auto;
 }
 
 .read-time,

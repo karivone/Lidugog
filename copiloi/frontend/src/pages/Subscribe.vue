@@ -797,3 +797,69 @@ async function subscribe() {
   }
 }
 </style>
+
+<script setup>
+import { ref } from 'vue';
+
+// Form data
+const firstName = ref('');
+const lastName = ref('');
+const email = ref('');
+const agree = ref(false);
+const isSubmitting = ref(false);
+const message = ref('');
+const messageType = ref('');
+
+async function handleSubmit() {
+  if (!firstName.value || !lastName.value || !email.value || !agree.value) {
+    message.value = 'Please fill in all fields and accept the privacy statement.';
+    messageType.value = 'error';
+    return;
+  }
+
+  isSubmitting.value = true;
+  message.value = '';
+  
+  try {
+    const response = await fetch('http://localhost:4000/api/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstName: firstName.value,
+        lastName: lastName.value,
+        email: email.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to subscribe. Please try again.');
+    }
+
+    // Success
+    message.value = data.message || 'Successfully subscribed! Welcome to our community.';
+    messageType.value = 'success';
+    
+    // Reset form
+    firstName.value = '';
+    lastName.value = '';
+    email.value = '';
+    agree.value = false;
+
+  } catch (error) {
+    console.error('Subscription error:', error);
+    message.value = error.message || 'Something went wrong. Please try again.';
+    messageType.value = 'error';
+  } finally {
+    isSubmitting.value = false;
+    
+    // Clear message after 8 seconds
+    setTimeout(() => {
+      message.value = '';
+    }, 8000);
+  }
+}
+</script>

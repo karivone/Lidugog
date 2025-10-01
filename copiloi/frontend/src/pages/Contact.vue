@@ -144,7 +144,7 @@
 
             <div class="form-group">
               <div class="input-wrapper">
-                <textarea v-model="messageText" placeholder=" " required rows="6" id="message"></textarea>
+                <textarea v-model="message" placeholder=" " required rows="6" id="message"></textarea>
                 <label for="message">Your Message *</label>
                 <div class="input-border"></div>
               </div>
@@ -225,7 +225,7 @@ const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
 const subject = ref('')
-const messageText = ref('')
+const message = ref('')
 const responseMsg = ref('')
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
@@ -262,7 +262,7 @@ function toggleFaq(index) {
 }
 
 async function sendContact() {
-  if (!firstName.value || !lastName.value || !email.value || !messageText.value) {
+  if (!firstName.value || !lastName.value || !email.value || !message.value) {
     responseMsg.value = 'Please fill in all required fields.'
     isSuccess.value = false
     return
@@ -276,25 +276,27 @@ async function sendContact() {
     const res = await fetch('http://localhost:4000/api/contact', {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
         name: `${firstName.value} ${lastName.value}`, 
         email: email.value, 
         subject: subject.value,
-        message: messageText.value 
+        message: message.value 
       })
     })
     
+    const data = await res.json()
+    
     if (!res.ok) {
-      const data = await res.json()
       throw new Error(data.error || 'Failed to send message. Please try again.')
     }
     
-    const data = await res.json()
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to send message. Please try again.')
+    }
     
-    responseMsg.value = data.message || 'Thank you for reaching out! We\'ll get back to you soon.'
+    responseMsg.value = data.message
     isSuccess.value = true
     
     // Reset form
@@ -302,7 +304,7 @@ async function sendContact() {
     lastName.value = ''
     email.value = ''
     subject.value = ''
-    messageText.value = ''
+    message.value = ''
     
   } catch (e) {
     console.error('Contact form error:', e)
